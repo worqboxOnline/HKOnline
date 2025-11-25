@@ -1046,6 +1046,174 @@
         .credits-link:last-child {
             margin-right: 0;
         }
+
+        /* Alert System Styles */
+        #alertContainer {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+            pointer-events: none;
+        }
+
+        .alert-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            border-left: 5px solid;
+            pointer-events: auto;
+            animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .alert-card:hover {
+            transform: translateX(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+        }
+
+        .alert-card.dismissing {
+            animation: slideOutRight 0.3s ease-out forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        .alert-card.critical {
+            border-left-color: #dc2626;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(254, 242, 242, 0.98));
+        }
+
+        .alert-card.warning {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(254, 252, 232, 0.98));
+        }
+
+        .alert-card.info {
+            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.98));
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .alert-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .alert-title {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .alert-close:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #374151;
+        }
+
+        .alert-message {
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.5;
+            margin-left: 36px;
+        }
+
+        .alert-value {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            margin: 0 3px;
+        }
+
+        .alert-card.critical .alert-value {
+            background: rgba(220, 38, 38, 0.15);
+            color: #dc2626;
+        }
+
+        .alert-card.warning .alert-value {
+            background: rgba(245, 158, 11, 0.15);
+            color: #d97706;
+        }
+
+        .alert-card.info .alert-value {
+            background: rgba(59, 130, 246, 0.15);
+            color: #2563eb;
+        }
+
+        @media (max-width: 768px) {
+            #alertContainer {
+                top: 60px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+
+            .alert-card {
+                padding: 12px 16px;
+            }
+
+            .alert-icon {
+                font-size: 20px;
+                margin-right: 10px;
+            }
+
+            .alert-title {
+                font-size: 14px;
+            }
+
+            .alert-message {
+                font-size: 12px;
+                margin-left: 30px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1054,6 +1222,10 @@
         <img src="assets/HKOnline.jpg" alt="Hong Kong Dashboard">
         <div class="loading-spinner"></div>
     </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+
     <div class="header">
         <div style="display: flex; align-items: center; gap: 24px;">
             <h1>Hong Kong Dashboard</h1>
@@ -1684,7 +1856,7 @@
                             <div style="position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); font-size:10px; color:#9ca3af; white-space:nowrap;">${min}°</div>
                         </div>
                         <div style="position:absolute; bottom:-54px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:2px;">
-                            <img src="assets/HKO/pic${iconCode}.png" alt="Weather" style="width:24px; height:24px; object-fit:contain;" />
+                            <img src="assets/hko/pic${iconCode}.png" alt="Weather" style="width:24px; height:24px; object-fit:contain;" />
                             <div style="font-size:11px; font-weight:600; color:#374151; white-space:nowrap;">${dayLabel}</div>
                         </div>
                     </div>
@@ -1750,7 +1922,7 @@
                             <div style="position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); font-size:10px; color:#9ca3af; white-space:nowrap;">${min}%</div>
                         </div>
                         <div style="position:absolute; bottom:-54px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:2px;">
-                            <img src="assets/HKO/pic${iconCode}.png" alt="Weather" style="width:24px; height:24px; object-fit:contain;" />
+                            <img src="assets/hko/pic${iconCode}.png" alt="Weather" style="width:24px; height:24px; object-fit:contain;" />
                             <div style="font-size:11px; font-weight:600; color:#374151; white-space:nowrap;">${dayLabel}</div>
                         </div>
                     </div>
@@ -1839,7 +2011,7 @@
                             <div style="position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:10px; font-weight:700; color:${color}; white-space:nowrap;">${psr}</div>
                         </div>
                         <div style="position:absolute; bottom:-54px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:2px;">
-                            <img src="assets/HKO/pic${iconCode}.png" alt="Weather" style="width:24px; height:24px; object-fit:contain;" />
+                            <img src="assets/hko/pic${iconCode}.png" alt="Weather" style="width:24px; height:24px; object-fit:contain;" />
                             <div style="font-size:11px; font-weight:600; color:#374151; white-space:nowrap;">${dayLabel}</div>
                             <div style="font-size:9px; color:#6b7280; font-weight:600;">${rainRange}</div>
                         </div>
@@ -2104,17 +2276,26 @@
                                 stationSelect.appendChild(opt);
                             });
 
+
+                            // Prefer last station from localStorage, then ?station param, then default
                             const fromParam = getQueryParam('station');
-                            if (fromParam){
+                            const lastStation = localStorage.getItem('hkdash_last_station');
+                            if (lastStation && data.some(s => s.station === lastStation)) {
+                                stationSelect.value = lastStation;
+                            } else if (fromParam) {
                                 const found = data.find(s => s.station.toLowerCase() === fromParam.toLowerCase());
                                 if (found) stationSelect.value = found.station;
                             }
                             if (!stationSelect.value && data.length) stationSelect.value = data[0].station;
 
                             // Initial update
-                                            await updateForStation(stationSelect.value);
-                            // On change
-                            stationSelect.addEventListener('change', e => updateForStation(e.target.value));
+                            await updateForStation(stationSelect.value);
+                            // On change, persist to localStorage
+                            stationSelect.addEventListener('change', e => {
+                                const val = e.target.value;
+                                localStorage.setItem('hkdash_last_station', val);
+                                updateForStation(val);
+                            });
                         } catch(e){
                             console.error('Failed to load stations', e);
                                             // Fallback for local dev (CORS from Worker)
@@ -2192,7 +2373,288 @@
                             updateWeather(stationName),
                             updatePollutants(stationName)
                         ]);
+                        // Update timestamp after all data fetches complete
+                        setFooterLastUpdated(Date.now());
+                        // Check for alerts after data is loaded
+                        checkAndShowAlerts();
                     }
+
+                    // Update the footer last updated timestamp
+                    function setFooterLastUpdated(date) {
+                        const el = document.getElementById('footerLastUpdated');
+                        if (!el) return;
+                        if (!date) {
+                            el.textContent = 'Last updated: —';
+                            return;
+                        }
+                        // Format as e.g. 2025-11-25 14:23:01
+                        const d = new Date(date);
+                        const pad = n => n.toString().padStart(2, '0');
+                        el.textContent = `Last updated: ${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+                    }
+
+                    // ==================== ALERT SYSTEM ====================
+                    let activeAlerts = new Map(); // Track active alerts by ID to prevent duplicates
+                    let dismissedAlerts = new Set(); // Track dismissed alerts in this session
+
+                    function checkAndShowAlerts() {
+                        const alerts = [];
+
+                        // 1. Check weather warnings
+                        const warningsContainer = document.getElementById('warningsContainer');
+                        if (warningsContainer && warningsContainer.children.length > 0) {
+                            const warningCount = warningsContainer.children.length;
+                            const warningIcons = Array.from(warningsContainer.children).map(w => w.textContent).join(' ');
+                            alerts.push({
+                                id: 'weather-warning',
+                                type: 'critical',
+                                icon: '⚠️',
+                                title: `${warningCount} Weather Warning${warningCount > 1 ? 's' : ''} Active`,
+                                message: `${warningIcons} Click warnings header for details.`
+                            });
+                        }
+
+                        // 2. Check AQHI (dangerous levels: 7+)
+                        const aqhiValue = document.getElementById('aqhiValue')?.textContent;
+                        if (aqhiValue) {
+                            const aqhi = parseInt(aqhiValue);
+                            if (aqhi >= 10) {
+                                alerts.push({
+                                    id: 'aqhi-serious',
+                                    type: 'critical',
+                                    icon: '🚨',
+                                    title: 'Serious Air Quality',
+                                    message: `AQHI is <span class="alert-value">${aqhi}</span>. Minimize outdoor activities. Everyone at risk.`
+                                });
+                            } else if (aqhi >= 8) {
+                                alerts.push({
+                                    id: 'aqhi-veryhigh',
+                                    type: 'critical',
+                                    icon: '🔴',
+                                    title: 'Very High Air Pollution',
+                                    message: `AQHI is <span class="alert-value">${aqhi}</span>. Sensitive groups avoid outdoor activities.`
+                                });
+                            } else if (aqhi >= 7) {
+                                alerts.push({
+                                    id: 'aqhi-high',
+                                    type: 'warning',
+                                    icon: '🟠',
+                                    title: 'High Air Pollution',
+                                    message: `AQHI is <span class="alert-value">${aqhi}</span>. Sensitive groups reduce outdoor exertion.`
+                                });
+                            }
+                        }
+
+                        // 3. Check UV Index (sunscreen advisory: 6+)
+                        const uvValue = document.getElementById('uvValue')?.textContent;
+                        if (uvValue && uvValue !== '—' && uvValue !== 'N/A') {
+                            const uv = parseFloat(uvValue);
+                            if (uv >= 11) {
+                                alerts.push({
+                                    id: 'uv-extreme',
+                                    type: 'critical',
+                                    icon: '☀️',
+                                    title: 'Extreme UV - Take Precautions',
+                                    message: `UV Index is <span class="alert-value">${uv}</span>. Unprotected skin burns in minutes. Apply SPF 50+ sunscreen, wear hat & sunglasses.`
+                                });
+                            } else if (uv >= 8) {
+                                alerts.push({
+                                    id: 'uv-veryhigh',
+                                    type: 'warning',
+                                    icon: '🌞',
+                                    title: 'Very High UV - Sunscreen Required',
+                                    message: `UV Index is <span class="alert-value">${uv}</span>. Apply SPF 30+ sunscreen every 2 hours. Seek shade 10AM-4PM.`
+                                });
+                            } else if (uv >= 6) {
+                                alerts.push({
+                                    id: 'uv-high',
+                                    type: 'info',
+                                    icon: '🕶️',
+                                    title: 'High UV - Protection Advised',
+                                    message: `UV Index is <span class="alert-value">${uv}</span>. Use SPF 15+ sunscreen. Wear protective clothing.`
+                                });
+                            }
+                        }
+
+                        // 4. Check temperature extremes
+                        const tempValue = document.getElementById('tempValue')?.textContent;
+                        if (tempValue && tempValue !== '—') {
+                            const temp = parseFloat(tempValue.replace('°C', ''));
+                            if (temp >= 35) {
+                                alerts.push({
+                                    id: 'temp-extreme-heat',
+                                    type: 'critical',
+                                    icon: '🔥',
+                                    title: 'Extreme Heat Warning',
+                                    message: `Temperature is <span class="alert-value">${temp}°C</span>. Heat stroke risk. Stay hydrated & avoid prolonged sun exposure.`
+                                });
+                            } else if (temp >= 33) {
+                                alerts.push({
+                                    id: 'temp-hot',
+                                    type: 'warning',
+                                    icon: '🌡️',
+                                    title: 'Very Hot Weather',
+                                    message: `Temperature is <span class="alert-value">${temp}°C</span>. Drink plenty of water. Limit outdoor activities.`
+                                });
+                            } else if (temp <= 5) {
+                                alerts.push({
+                                    id: 'temp-cold',
+                                    type: 'warning',
+                                    icon: '❄️',
+                                    title: 'Very Cold Weather',
+                                    message: `Temperature is <span class="alert-value">${temp}°C</span>. Dress warmly. Watch for hypothermia risk.`
+                                });
+                            }
+                        }
+
+                        // 5. Check humidity extremes
+                        const humidityValue = document.getElementById('humidityValue')?.textContent;
+                        if (humidityValue && humidityValue !== '—') {
+                            const humidity = parseFloat(humidityValue.replace('%', ''));
+                            if (humidity >= 95 && tempValue) {
+                                const temp = parseFloat(tempValue.replace('°C', ''));
+                                if (temp >= 28) {
+                                    alerts.push({
+                                        id: 'humidity-extreme',
+                                        type: 'warning',
+                                        icon: '💦',
+                                        title: 'Extremely Humid Conditions',
+                                        message: `Humidity at <span class="alert-value">${humidity}%</span> with ${temp}°C. Heat stress risk elevated.`
+                                    });
+                                }
+                            }
+                        }
+
+                        // 6. Check rainfall
+                        const rainValue = document.getElementById('rainValue')?.textContent;
+                        if (rainValue && rainValue !== '—' && rainValue !== '0 mm') {
+                            const rain = parseFloat(rainValue.replace(' mm', ''));
+                            if (rain >= 50) {
+                                alerts.push({
+                                    id: 'rain-heavy',
+                                    type: 'warning',
+                                    icon: '🌧️',
+                                    title: 'Heavy Rainfall Recorded',
+                                    message: `<span class="alert-value">${rain}mm</span> rainfall recorded. Flooding risk. Avoid low-lying areas.`
+                                });
+                            } else if (rain >= 30) {
+                                alerts.push({
+                                    id: 'rain-moderate',
+                                    type: 'info',
+                                    icon: '☔',
+                                    title: 'Significant Rainfall',
+                                    message: `<span class="alert-value">${rain}mm</span> rainfall recorded. Expect wet conditions.`
+                                });
+                            }
+                        }
+
+                        // 7. Check visibility
+                        const visibilityValue = document.getElementById('visibilityValue')?.textContent;
+                        if (visibilityValue && visibilityValue !== '—' && visibilityValue !== 'N/A') {
+                            const vis = parseFloat(visibilityValue.replace(' km', ''));
+                            if (vis <= 1) {
+                                alerts.push({
+                                    id: 'visibility-poor',
+                                    type: 'warning',
+                                    icon: '🌫️',
+                                    title: 'Very Poor Visibility',
+                                    message: `Visibility only <span class="alert-value">${vis}km</span>. Drive carefully. Delays expected.`
+                                });
+                            } else if (vis <= 3) {
+                                alerts.push({
+                                    id: 'visibility-reduced',
+                                    type: 'info',
+                                    icon: '🌁',
+                                    title: 'Reduced Visibility',
+                                    message: `Visibility <span class="alert-value">${vis}km</span>. Exercise caution when driving.`
+                                });
+                            }
+                        }
+
+                        // 8. Check PM2.5 levels
+                        const pm25Value = document.getElementById('pm25Value')?.textContent;
+                        if (pm25Value && pm25Value !== '—') {
+                            const pm25 = parseFloat(pm25Value);
+                            if (pm25 >= 100) {
+                                alerts.push({
+                                    id: 'pm25-unhealthy',
+                                    type: 'critical',
+                                    icon: '😷',
+                                    title: 'Unhealthy PM2.5 Levels',
+                                    message: `PM2.5 at <span class="alert-value">${pm25} µg/m³</span>. Wear N95 mask outdoors. Keep windows closed.`
+                                });
+                            } else if (pm25 >= 75) {
+                                alerts.push({
+                                    id: 'pm25-sensitive',
+                                    type: 'warning',
+                                    icon: '🎭',
+                                    title: 'Elevated PM2.5 Levels',
+                                    message: `PM2.5 at <span class="alert-value">${pm25} µg/m³</span>. Sensitive groups consider masks.`
+                                });
+                            }
+                        }
+
+                        // Display alerts
+                        alerts.forEach(alert => showAlert(alert));
+
+                        // Remove alerts that are no longer active
+                        activeAlerts.forEach((alertEl, alertId) => {
+                            if (!alerts.some(a => a.id === alertId)) {
+                                dismissAlert(alertId, false);
+                            }
+                        });
+                    }
+
+                    function showAlert(alert) {
+                        // Don't show if dismissed in this session
+                        if (dismissedAlerts.has(alert.id)) return;
+
+                        // Don't show if already active
+                        if (activeAlerts.has(alert.id)) return;
+
+                        const container = document.getElementById('alertContainer');
+                        if (!container) return;
+
+                        const alertEl = document.createElement('div');
+                        alertEl.className = `alert-card ${alert.type}`;
+                        alertEl.id = `alert-${alert.id}`;
+                        alertEl.innerHTML = `
+                            <div class="alert-header">
+                                <div class="alert-title">
+                                    <span class="alert-icon">${alert.icon}</span>
+                                    ${alert.title}
+                                </div>
+                                <button class="alert-close" onclick="dismissAlert('${alert.id}')" aria-label="Dismiss">&times;</button>
+                            </div>
+                            <div class="alert-message">${alert.message}</div>
+                        `;
+
+                        container.appendChild(alertEl);
+                        activeAlerts.set(alert.id, alertEl);
+
+                        // Auto-dismiss all alerts after 10 seconds
+                        setTimeout(() => dismissAlert(alert.id), 10000);
+                    }
+
+                    function dismissAlert(alertId, addToDismissed = true) {
+                        const alertEl = activeAlerts.get(alertId);
+                        if (!alertEl) return;
+
+                        alertEl.classList.add('dismissing');
+                        setTimeout(() => {
+                            alertEl.remove();
+                            activeAlerts.delete(alertId);
+                        }, 300);
+
+                        if (addToDismissed) {
+                            dismissedAlerts.add(alertId);
+                        }
+                    }
+
+                    // Make dismissAlert globally accessible
+                    window.dismissAlert = dismissAlert;
+
+                    // ==================== END ALERT SYSTEM ====================
 
                     // Caches for CSVs to avoid frequent network calls
                     let windCsvCache = { ts: 0, rows: [] };
@@ -2755,6 +3217,7 @@
             <img src="assets/connected-spaces-logo.png" alt="Connected Spaces" style="height: 36px;" />
             <div class="footer-citations">
                 <div>Data: <span class="credits-link" onclick="openModal('credits')">HKO</span>, <span class="credits-link" onclick="openModal('credits')">EPD</span>, <span class="credits-link" onclick="openModal('credits')">SCMP</span></div>
+                <div id="footerLastUpdated" style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:2px;">Last updated: —</div>
             </div>
         </div>
         <div class="footer-buttons">
