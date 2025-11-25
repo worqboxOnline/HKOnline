@@ -1,0 +1,2992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HK Dashboard - Single Screen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            height: 100dvh; /* Use dynamic viewport height to account for browser UI */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: transparent;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 24px;
+        }
+
+        .header-buttons button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            margin-left: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .header-buttons button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .main-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            padding-bottom: 70px; /* space for footer */
+            overflow: hidden;
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: center;
+            z-index: 900;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            z-index: 1000;
+        }
+        
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .footer-citations {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            line-height: 1.4;
+        }
+        
+        .footer-citations a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-citations a:hover {
+            color: #fff;
+        }
+        
+        .footer-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .footer-buttons button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+        
+        .footer-buttons button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .panel {
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            display: grid; /* Grid for header + metrics */
+            grid-template-rows: auto 1fr; /* header + metrics area */
+            overflow-y: auto; /* Enable vertical scrolling when content exceeds space */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 0; /* Allow shrinking in parent grid */
+        }
+        
+        .metrics-container {
+            display: grid; /* six equal metric rows by default */
+            grid-template-rows: repeat(6, 1fr);
+            gap: 0;
+            min-height: 0;
+        }
+
+        .panel h2 {
+            color: #e5e7eb;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .warnings-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .warnings-section h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .warning-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            border-left: 3px solid;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .warning-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .warning-item.yellow {
+            background-color: #fef3c7;
+            border-left-color: #fbbf24;
+            color: #92400e;
+        }
+
+        .warning-item.red {
+            background-color: #fee2e2;
+            border-left-color: #ef4444;
+            color: #7f1d1d;
+        }
+
+        .warning-item.black {
+            background-color: #f3f4f6;
+            border-left-color: #1f2937;
+            color: #1f2937;
+        }
+
+        .warning-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+
+        /* Desktop weather warning icon size (match metric icons) */
+        .warning-icon-small {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+
+        .warning-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .warning-title {
+            font-weight: 700;
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+
+        .warning-time {
+            font-size: 9px;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .no-warnings {
+            text-align: center;
+            color: #6b7280;
+            font-size: 11px;
+            padding: 6px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 60px; /* Ensure metrics are visible */
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #d1d5db;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .metric-label img {
+            height: 48px; /* Equal size for both panels */
+            width: 48px; /* Fixed width to align all text */
+            object-fit: contain;
+        }
+
+        #airPanel .metric-label img {
+            height: 48px; /* Same as weather panel for equal row heights */
+            width: 48px; /* Fixed width to align all text */
+        }
+        
+        /* Forecast icon in header - match metric icon width */
+        #forecastIcon {
+            width: 48px !important;
+            height: 48px !important;
+            object-fit: contain;
+        }
+        .metric-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827; /* default text for light pills */
+            background: none; /* remove glass gradient */
+            backdrop-filter: none; /* remove blur */
+            padding: 8px 16px;
+            border-radius: 12px;
+            min-width: 110px;
+            max-width: 140px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.15);
+            transition: filter 0.25s ease, transform 0.25s ease;
+            filter: saturate(160%) contrast(112%);
+            flex-shrink: 0;
+        }
+
+        .metric-value:hover {
+            transform: translateY(-2px);
+            filter: saturate(180%) contrast(118%);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.12);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-good { background: #4caf50; }
+        .status-moderate { background: #ff9800; }
+        .status-poor { background: #f44336; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .modal-content {
+            background: #f9fafb;
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            width: 100%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .close-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+            z-index: 10001;
+            background: #667eea;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #5568d3;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
+        }
+
+        .refresh-progress-bar {
+            position: fixed;
+            bottom: 65px; /* Just above footer */
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.05);
+            z-index: 100;
+            overflow: hidden;
+            box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .refresh-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 100%;
+            transition: width 1s linear;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.8), 
+                        0 0 40px rgba(102, 126, 234, 0.4);
+            animation: progressPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes progressPulse {
+            0%, 100% { 
+                opacity: 1;
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.8), 
+                            0 0 40px rgba(102, 126, 234, 0.4);
+            }
+            50% { 
+                opacity: 0.9;
+                box-shadow: 0 0 15px rgba(102, 126, 234, 0.6), 
+                            0 0 30px rgba(102, 126, 234, 0.3);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .refresh-progress-bar {
+                bottom: 60px; /* Adjust for smaller mobile footer */
+            }
+        }
+
+        .modal-content h2 {
+            font-size: 24px;
+            color: #1f2937;
+            margin-bottom: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .modal-section {
+            margin-bottom: 24px;
+        }
+
+        .modal-section h3 {
+            font-size: 16px;
+            color: #1f2937;
+            margin-bottom: 16px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .traffic-item, .news-item {
+            padding: 16px;
+            margin-bottom: 12px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .traffic-item:hover, .news-item:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+
+        .traffic-item h4, .news-item h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .traffic-item p, .news-item p {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 6px 0;
+            line-height: 1.5;
+        }
+
+        .news-item .news-time {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+
+        .error-message {
+            padding: 12px;
+            background: #fee2e2;
+            border-left: 3px solid #ef4444;
+            border-radius: 8px;
+            color: #7f1d1d;
+            font-size: 13px;
+        }
+
+        .clickable-icon {
+            cursor: pointer;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .clickable-icon:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 2px 8px rgba(102, 126, 234, 0.4));
+        }
+
+        /* Tour overlay styles */
+        .tour-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 99999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tour-spotlight {
+            position: absolute;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+            border-radius: 8px;
+            z-index: 100000;
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
+
+        .tour-tooltip {
+            position: absolute;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 320px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            z-index: 100001;
+            animation: slideIn 0.3s ease;
+        }
+
+        .tour-tooltip h3 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .tour-tooltip p {
+            margin: 0 0 15px 0;
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .tour-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tour-progress {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .tour-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tour-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .tour-btn-skip {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+
+        .tour-btn-skip:hover {
+            background: #d1d5db;
+        }
+
+        .tour-btn-next {
+            background: #667eea;
+            color: white;
+        }
+
+        .tour-btn-next:hover {
+            background: #5568d3;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* AQHI Badge */
+        .aqhi-badge {
+            display: inline-block;
+            width: 38px;
+            height: 38px;
+            border-radius: 6px;
+            margin-left: 8px;
+            font-weight: 700;
+            font-size: 18px;
+            text-align: center;
+            line-height: 38px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: visible;
+        }
+
+        /* Hide duplicated weather title on mobile (panel switcher already shows it) */
+        @media (max-width: 700px) {
+            #weatherPanel .weather-title,
+            #airPanel .air-title { display: none; }
+        }
+
+        .aqhi-badge:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Glow / pulse effect */
+        .aqhi-badge::before {
+            content: "";
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.6), transparent 70%);
+            opacity: 0;
+            transform: scale(0.4);
+            pointer-events: none;
+        }
+        .aqhi-badge.pulse::before { animation: aqhiPulse 3.2s ease-in-out infinite; }
+        @keyframes aqhiPulse {
+            0% { opacity: 0.08; transform: scale(0.4); }
+            50% { opacity: 0.55; transform: scale(1.05); }
+            100% { opacity: 0; transform: scale(1.35); }
+        }
+        .aqhi-badge.low { box-shadow: 0 0 8px 2px rgba(0,255,170,0.35); }
+        .aqhi-badge.moderate { box-shadow: 0 0 12px 3px rgba(255,165,0,0.5); }
+        .aqhi-badge.severe { box-shadow: 0 0 14px 4px rgba(255,0,0,0.6); }
+
+        .forecast-chart {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+
+        .chart-bar-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 200px;
+            gap: 8px;
+            padding: 10px;
+            border-bottom: 2px solid #d1d5db;
+        }
+
+        .chart-bar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bar {
+            width: 100%;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px 6px 0 0;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 20px;
+        }
+
+        .bar:hover {
+            filter: brightness(1.2);
+            transform: scaleY(1.05);
+        }
+
+        .bar-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #374151;
+            margin-top: 4px;
+        }
+
+        .bar-value {
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .metric-description {
+            padding: 16px;
+            background: #eff6ff;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+
+        .metric-description h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .metric-description p {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Footer stacked layout for mobile and small tablets */
+        @media (max-width: 800px) {
+            .footer {
+                padding: 6px 10px;
+                font-size: 8px;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .footer-left {
+                gap: 8px;
+                width: 100%;
+                justify-content: center;
+            }
+            .footer-citations {
+                text-align: center;
+            }
+            .footer-buttons {
+                gap: 6px;
+                width: 100%;
+                justify-content: stretch;
+            }
+            .footer-buttons button {
+                padding: 8px 12px;
+                font-size: 11px;
+                flex: 1;
+                min-width: 0;
+            }
+        }
+
+        /* Hide mobile panel switcher on desktop/tablet */
+        @media (min-width: 701px) {
+            .panel-switcher {
+                display: none !important;
+            }
+        }
+
+        /* Tablet view (2 columns) */
+        @media (min-width: 701px) and (max-width: 1024px) {
+            body {
+                height: 100dvh;
+            }
+            .header {
+                padding: 12px 20px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .main-content {
+                padding: 10px;
+                padding-bottom: 100px; /* More space for browser UI bars */
+                gap: 10px;
+            }
+            .panel {
+                padding: 12px;
+            }
+            .panel h2 {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+            .metric {
+                padding: 8px 0;
+            }
+            .metric-label {
+                font-size: 13px;
+            }
+            .metric-label img {
+                height: 40px; /* Equal for both panels */
+                width: 40px; /* Fixed width to align text */
+            }
+            #airPanel .metric-label img {
+                height: 40px; /* Same as weather panel */
+                width: 40px; /* Fixed width to align text */
+            }
+            .metric-value {
+                font-size: 16px;
+                padding: 6px 12px;
+                min-width: 95px;
+                max-width: 120px;
+            }
+        }
+
+        /* Mobile view (1 column) */
+        @media (max-width: 700px) {
+            body {
+                height: 100dvh; /* Use dynamic viewport height for mobile browsers */
+            }
+            .header {
+                padding: 10px 15px;
+                flex-wrap: nowrap;
+            }
+            .header h1 {
+                font-size: 18px;
+            }
+            .header-buttons {
+                display: flex;
+                flex-wrap: nowrap;
+                align-items: center;
+                white-space: nowrap;
+            }
+            .header-buttons label {
+                display: none; /* Hide "Station:" label on mobile */
+            }
+            .header-buttons select {
+                min-width: 120px !important;
+                font-size: 12px;
+                padding: 6px 10px !important;
+            }
+            .header-buttons button {
+                padding: 6px 12px !important;
+                margin-left: 6px !important;
+            }
+            .main-content {
+                grid-template-columns: 1fr !important;
+                padding: 3px;
+                padding-bottom: 110px; /* Increased to account for footer wrapping */
+                gap: 0;
+            }
+            .panel {
+                margin-bottom: 0;
+                height: auto;
+                max-height: none; /* Remove height constraint */
+                overflow-y: visible;
+                padding: 4px 6px;
+            }
+            .panel h2 {
+                font-size: 12px;
+                margin-bottom: 2px;
+            }
+            .metric {
+                padding: 6px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            .metric-label {
+                font-size: 11px;
+                flex: 1;
+                min-width: 0;
+            }
+            .metric-label img {
+                height: 36px; /* Equal for both panels */
+                width: 36px; /* Fixed width to align text */
+            }
+            #airPanel .metric-label img {
+                height: 36px; /* Same as weather panel */
+                width: 36px; /* Fixed width to align text */
+            }
+            .metric-value {
+                font-size: 14px;
+                padding: 4px 8px;
+                min-width: 85px;
+                max-width: 110px;
+            }
+            .warning-icon-small {
+                /* Mobile size (match reduced metric icons) */
+                width: 36px !important;
+                height: 36px !important;
+            }
+            .panel-switcher {
+                padding: 0 8px;
+                margin-bottom: 8px;
+                gap: 8px;
+            }
+            .panel-switcher button {
+                padding: 8px 0;
+                font-size: 14px;
+            }
+            .footer {
+                padding: 6px 10px;
+                font-size: 8px;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .footer-left {
+                gap: 8px;
+                width: 100%;
+                justify-content: center;
+            }
+            .footer-left img {
+                height: 24px !important;
+            }
+            .panel-switcher {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 12px;
+                justify-content: center;
+                padding: 0 10px;
+            }
+            .panel-switcher button {
+                flex: 1;
+                background: #374151;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 0;
+                font-size: 16px;
+                font-weight: 600;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .panel-switcher button.active {
+                background: #667eea;
+                color: #fff;
+            }
+            .panel { display: none; }
+            .panel.active { display: flex; flex-direction: column; }
+            
+            /* Hide desktop weather icon and AQHI badge on mobile */
+            #weatherIconDesktop,
+            #aqhiBadgeDesktop {
+                display: none !important;
+            }
+        }
+
+        /* Loading Screen Styles */
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #loadingScreen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #loadingScreen img {
+            max-width: 400px;
+            width: 80%;
+            height: auto;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        .loading-spinner {
+            margin-top: 30px;
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Orientation-based sizing */
+        /* Landscape: divide panel into 7 equal rows (1 header + 6 metrics) */
+        @media (orientation: landscape) {
+            .panel {
+                grid-template-rows: repeat(7, 1fr);
+            }
+            .panel > :first-child {
+                grid-row: 1;
+                margin-bottom: 0 !important; /* ensure equal row height */
+                display: flex;
+                align-items: center;
+            }
+            .panel .metrics-container {
+                grid-row: 2 / span 6;
+                display: grid;
+                grid-template-rows: repeat(6, 1fr);
+                align-content: stretch;
+            }
+        }
+
+        /* Portrait: cap row heights to avoid 'leggy' rows */
+        :root { --row-max: 90px; }
+        @media (orientation: portrait) {
+            .panel { grid-template-rows: auto 1fr; }
+            .panel > :first-child { margin-bottom: 8px; }
+            .panel .metrics-container {
+                display: grid;
+                grid-template-rows: repeat(6, minmax(0, var(--row-max)));
+                align-content: start; /* keep rows at the top if there's extra space */
+            }
+        }
+        /* Tighter caps for smaller screens in portrait */
+        @media (max-width: 700px) and (orientation: portrait) {
+            :root { --row-max: 64px; }
+        }
+        @media (min-width: 701px) and (max-width: 1024px) and (orientation: portrait) {
+            :root { --row-max: 80px; }
+        }
+        @media (min-width: 1025px) and (orientation: portrait) {
+            :root { --row-max: 96px; }
+        }
+
+        .credits-link {
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-right: 4px;
+        }
+        .credits-link:last-child {
+            margin-right: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen">
+        <img src="assets/HKOnline.jpg" alt="Hong Kong Dashboard">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 24px;">
+            <h1>Hong Kong Dashboard</h1>
+            <div id="holidayBanner" style="display: none; background: rgba(34, 197, 94, 0.9); color: white; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"></div>
+        </div>
+        <div class="header-buttons">
+            <label for="stationSelector" style="color: #fff; font-size: 13px; font-weight: 600; margin-right: 8px;">Station:</label>
+            <select id="stationSelector" style="padding: 8px 16px; border-radius: 5px; border: 1px solid #ccc; margin-right: 10px; min-width: 180px;"><option>Loading stations...</option></select>
+            <button onclick="startTour()" style="background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.25)'">?</button>
+        </div>
+    </div>
+
+    <!-- Auto-refresh progress bar -->
+    <div class="refresh-progress-bar">
+        <div class="refresh-progress-fill" id="refreshProgressBar"></div>
+    </div>
+    <div id="sd-status" style="display:none; background: rgba(255,255,255,0.15); color:#fff; padding:6px 12px; text-align:center; font-size:12px;"></div>
+
+    <!-- Panel switcher for mobile -->
+    <div class="panel-switcher" id="panelSwitcher" style="display:none;">
+        <button id="weatherBtn" class="active" onclick="showPanel('weather')">
+            <img id="weatherIcon" src="" alt="" style="height:24px;vertical-align:middle;margin-right:6px;display:none;">
+            <span>Weather</span>
+        </button>
+        <button id="airBtn" onclick="showPanel('air')">
+            <span>Air Quality</span>
+            <span id="aqhiBadge" class="aqhi-badge" onclick="event.stopPropagation(); openAQHIModal();" style="display:none;"></span>
+        </button>
+    </div>
+
+    <div class="main-content">
+        <div class="panel active" id="weatherPanel">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <img id="weatherIconDesktop" src="" alt="" style="height:28px;display:none;">
+                        <h2 class="weather-title" style="margin: 0;">Weather</h2>
+                    </div>
+                    <div id="staticForecast" style="display: none; gap: 12px; margin-left: 8px;">
+                        <!-- 3-day forecast cards will be inserted here -->
+                    </div>
+                </div>
+                <div id="warningsContainer" style="display: flex; gap: 6px;"></div>
+            </div>
+            <div class="metrics-container">
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/temp.png" alt="Temperature" class="clickable-icon" onclick="openMetricModal('temperature')">Temperature</span>
+                    <span class="metric-value" id="tempValue">—</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/hum.png" alt="Humidity" class="clickable-icon" onclick="openMetricModal('humidity')">Humidity</span>
+                    <span class="metric-value" id="humidityValue">—</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/UV.png" alt="UV" class="clickable-icon" onclick="openMetricModal('uv')">UV Index</span>
+                    <span class="metric-value" id="uvValue">—</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/rain.png" alt="Rain" class="clickable-icon" onclick="openMetricModal('rain')">Rain</span>
+                    <span class="metric-value" id="rainValue">—</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/wind.png" alt="Wind" class="clickable-icon" onclick="openMetricModal('wind')">Wind</span>
+                    <span class="metric-value" id="windValue">—</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/visibility.png" alt="Visibility" class="clickable-icon" onclick="openMetricModal('visibility')">Visibility</span>
+                    <span class="metric-value" id="visibilityValue">—</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="airPanel">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                <h2 class="air-title" style="margin: 0;">Air Quality (µg/m³)</h2>
+                <span id="aqhiBadgeDesktop" class="aqhi-badge" onclick="openAQHIModal();" style="display:none;"></span>
+            </div>
+            <div class="metrics-container">
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/no2.png" alt="NO2" class="clickable-icon" onclick="openMetricModal('no2')"></span>
+                    <span class="metric-value" id="no2Value">—</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/03.png" alt="O3" class="clickable-icon" onclick="openMetricModal('o3')"></span>
+                    <span class="metric-value" id="o3Value">—</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/so2.png" alt="SO2" class="clickable-icon" onclick="openMetricModal('so2')"></span>
+                    <span class="metric-value" id="so2Value">—</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/co.png" alt="CO" class="clickable-icon" onclick="openMetricModal('co')"></span>
+                    <span class="metric-value" id="coValue">—</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/pm10.png" alt="PM10" class="clickable-icon" onclick="openMetricModal('pm10')"></span>
+                    <span class="metric-value" id="pm10Value">—</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label"><img src="assets/pm25.png" alt="PM2.5" class="clickable-icon" onclick="openMetricModal('pm25')"></span>
+                    <span class="metric-value" id="pm25Value">—</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div id="modal-body">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Metric Info Modal -->
+    <div id="metricModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeMetricModal()">&times;</span>
+            <div id="metric-modal-body">
+                <!-- Metric detail content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function openModal(type) {
+            const modal = document.getElementById('modal');
+            const modalBody = document.getElementById('modal-body');
+            
+            modal.style.display = 'flex';
+            modalBody.innerHTML = '<div class="loading-spinner">Loading...</div>';
+            
+            try {
+                let content = '';
+                switch(type) {
+                    case 'traffic':
+                        content = await loadTrafficData();
+                        break;
+                    case 'news':
+                        content = await loadNewsData();
+                        break;
+                    case 'events':
+                        content = await loadEventsData();
+                        break;
+                    case 'credits':
+                        content = `
+                            <h2>Data Sources & Credits</h2>
+                            <div class="modal-section" style="padding: 20px;">
+                                <div style="margin-bottom: 24px;">
+                                    <h3 style="color: #667eea; font-size: 16px; margin-bottom: 8px;">Hong Kong Observatory (HKO)</h3>
+                                    <p style="margin-bottom: 12px; line-height: 1.6;">Weather data, warnings, and forecasts.</p>
+                                    <a href='https://www.hko.gov.hk' target='_blank' style="display: inline-block; background: #667eea; color: white; padding: 8px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">Visit HKO →</a>
+                                </div>
+                                
+                                <div style="margin-bottom: 24px;">
+                                    <h3 style="color: #667eea; font-size: 16px; margin-bottom: 8px;">Environmental Protection Department (EPD)</h3>
+                                    <p style="margin-bottom: 12px; line-height: 1.6;">Air Quality Health Index (AQHI) and pollutant data.</p>
+                                    <a href='https://www.aqhi.gov.hk' target='_blank' style="display: inline-block; background: #667eea; color: white; padding: 8px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">Visit EPD →</a>
+                                </div>
+                                
+                                <div style="margin-bottom: 24px;">
+                                    <h3 style="color: #667eea; font-size: 16px; margin-bottom: 8px;">South China Morning Post (SCMP)</h3>
+                                    <p style="margin-bottom: 12px; line-height: 1.6;">News headlines and summaries.</p>
+                                    <a href='https://www.scmp.com' target='_blank' style="display: inline-block; background: #667eea; color: white; padding: 8px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">Visit SCMP →</a>
+                                </div>
+                                
+                                <p style='font-size: 11px; color: #9ca3af; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; line-height: 1.5;'>All data © respective providers. This dashboard is for informational purposes only – please consult official sources for health and safety advisories.</p>
+                            </div>
+                        `;
+                        break;
+                }
+                modalBody.innerHTML = content;
+            } catch (err) {
+                console.error('Modal load error:', err);
+                modalBody.innerHTML = `<div class="error-message">Failed to load data. Please try again later.</div>`;
+            }
+        }
+
+        async function loadTrafficData() {
+            try {
+                // Using TD Special Traffic News XML
+                const res = await fetch('https://resource.data.one.gov.hk/td/en/specialtrafficnews.xml');
+                const xmlText = await res.text();
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(xmlText, 'application/xml');
+                
+                const messages = Array.from(xml.getElementsByTagName('message'));
+                
+                if (messages.length === 0) {
+                    return '<h2>� Traffic Status</h2><div class="modal-section"><p style="text-align:center; color:#22c55e;">✓ No special traffic incidents reported</p></div>';
+                }
+                
+                // Filter active incidents (CurrentStatus = 3 means active)
+                const activeMessages = messages.filter(msg => {
+                    const status = msg.getElementsByTagName('CurrentStatus')[0]?.textContent;
+                    return status === '3';
+                });
+                
+                if (activeMessages.length === 0) {
+                    return '<h2>🚗 Traffic Status</h2><div class="modal-section"><p style="text-align:center; color:#22c55e;">✓ No active traffic incidents</p></div>';
+                }
+                
+                const items = activeMessages.slice(0, 15).map((msg, idx) => {
+                    const engShort = msg.getElementsByTagName('EngShort')[0]?.textContent || 
+                                    msg.getElementsByTagName('EngText')[0]?.textContent || 
+                                    'Traffic update';
+                    const engText = msg.getElementsByTagName('EngText')[0]?.textContent || '';
+                    const referenceDate = msg.getElementsByTagName('ReferenceDate')[0]?.textContent || '';
+                    
+                    const hasMoreDetail = engText && engText.length > engShort.length + 10;
+                    const itemId = `traffic-item-${idx}`;
+                    
+                    return `
+                        <div class="traffic-item">
+                            <h4>${engShort}</h4>
+                            ${hasMoreDetail ? `
+                                <div id="${itemId}-full" style="display:none; margin-top:8px;">
+                                    <p>${engText}</p>
+                                </div>
+                                <button onclick="toggleTrafficDetail('${itemId}')" id="${itemId}-btn" style="background:none; border:none; color:#667eea; cursor:pointer; font-size:12px; padding:4px 0; text-decoration:underline; font-weight:500;">
+                                    Show more
+                                </button>
+                            ` : ''}
+                            ${referenceDate ? `<p style="font-size:11px; color:#9ca3af; margin-top:8px;">${referenceDate.trim()}</p>` : ''}
+                        </div>
+                    `;
+                }).join('');
+                
+                return `<h2>🚗 Special Traffic News (${activeMessages.length} active)</h2><div class="modal-section">${items}</div>`;
+            } catch (err) {
+                console.error('Traffic fetch failed:', err);
+                return '<h2>🚗 Traffic Status</h2><div class="error-message">Unable to load traffic data. Please check your connection.</div>';
+            }
+        }
+
+        async function loadNewsData() {
+            try {
+                // Using RTHK English RSS feed via Worker proxy
+                const res = await fetch('https://purple-river-7d7a.trials-9f5.workers.dev/?feed=news');
+                const xmlText = await res.text();
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(xmlText, 'application/xml');
+                
+                const items = Array.from(xml.getElementsByTagName('item')).slice(0, 10);
+                
+                if (items.length === 0) {
+                    return '<h2>� Latest News</h2><div class="modal-section"><p>No news items available.</p></div>';
+                }
+                
+                const newsItems = items.map(item => {
+                    const title = item.getElementsByTagName('title')[0]?.textContent || 'Untitled';
+                    const link = item.getElementsByTagName('link')[0]?.textContent || '#';
+                    const pubDate = item.getElementsByTagName('pubDate')[0]?.textContent || '';
+                    const description = item.getElementsByTagName('description')[0]?.textContent || '';
+                    
+                    // Parse date
+                    let dateStr = '';
+                    if (pubDate) {
+                        try {
+                            const d = new Date(pubDate);
+                            dateStr = d.toLocaleString('en-HK', { hour12: false });
+                        } catch (e) {
+                            dateStr = pubDate;
+                        }
+                    }
+                    
+                    return `
+                        <div class="news-item">
+                            <h4><a href="${link}" target="_blank" style="color:#667eea; text-decoration:none;">${title}</a></h4>
+                            ${description ? `<p>${description.substring(0, 200)}${description.length > 200 ? '...' : ''}</p>` : ''}
+                            ${dateStr ? `<p class="news-time">${dateStr}</p>` : ''}
+                        </div>
+                    `;
+                }).join('');
+                
+                return `<h2>📰 Latest News (SCMP)</h2><div class="modal-section">${newsItems}</div>`;
+            } catch (err) {
+                console.error('News fetch failed:', err);
+                return '<h2>📰 Latest News</h2><div class="error-message">Unable to load news feed. This may be due to CORS restrictions. Try accessing the dashboard via HTTPS or a web server.</div>';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function closeMetricModal() {
+            document.getElementById('metricModal').style.display = 'none';
+        }
+
+        function openWarningModal(warningData) {
+            const modal = document.getElementById('metricModal');
+            const modalBody = document.getElementById('metric-modal-body');
+            
+            modal.style.display = 'flex';
+            
+            let html = `<h2>⚠️ Weather Warning</h2>`;
+            html += `<div class="metric-description">`;
+            html += `<h3>${warningData.name}</h3>`;
+            html += `<p><strong>Issued:</strong> ${warningData.issueTime}</p>`;
+            if (warningData.extra) {
+                html += `<p><strong>Details:</strong> ${warningData.extra}</p>`;
+            }
+            html += `<p style="margin-top: 12px; color: #6b7280; font-size: 13px;">For more information, visit the <a href="https://www.hko.gov.hk" target="_blank" style="color: #667eea;">Hong Kong Observatory website</a>.</p>`;
+            html += `</div>`;
+            
+            modalBody.innerHTML = html;
+        }
+
+        async function openMetricModal(metricType) {
+            const modal = document.getElementById('metricModal');
+            const modalBody = document.getElementById('metric-modal-body');
+            
+            modal.style.display = 'flex';
+            modalBody.innerHTML = '<div class="loading-spinner">Loading...</div>';
+            
+            try {
+                const content = await loadMetricDetails(metricType);
+                modalBody.innerHTML = content;
+            } catch (err) {
+                console.error('Metric modal error:', err);
+                modalBody.innerHTML = '<div class="error-message">Unable to load metric details.</div>';
+            }
+        }
+
+        function openAQHIModal() {
+            const modal = document.getElementById('metricModal');
+            const modalBody = document.getElementById('metric-modal-body');
+            modal.style.display = 'flex';
+            modalBody.innerHTML = generateAQHIInfo();
+        }
+
+        function generateAQHIInfo() {
+            return `
+                <h2 style="color:#667eea; margin-bottom:16px;">🌫️ Air Quality Health Index</h2>
+                <div class="metric-description">
+                    <p>The Air Quality Health Index (AQHI) is Hong Kong's air quality reporting system. It consolidates data from multiple pollutants (NO₂, O₃, SO₂, PM₁₀, PM₂.₅) into a single index representing short-term health risks.</p>
+                </div>
+
+                <details open style="margin:20px 0; cursor:pointer;">
+                    <summary style="font-weight:600; color:#667eea; font-size:15px; padding:12px; background:#f3f4f6; border-radius:8px; user-select:none;">
+                        📊 AQHI Grading Scale & Health Advisories
+                    </summary>
+                    <div style="margin-top:16px; padding:12px;">
+                        <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+                            <span style="display:inline-block; padding:6px 12px; border-radius:6px; background:#00e676; color:white; font-size:12px; font-weight:600;">1-3 Low</span>
+                            <span style="display:inline-block; padding:6px 12px; border-radius:6px; background:#ffea00; color:#111827; font-size:12px; font-weight:600;">4-6 Moderate</span>
+                            <span style="display:inline-block; padding:6px 12px; border-radius:6px; background:#ff6d00; color:white; font-size:12px; font-weight:600;">7 High</span>
+                            <span style="display:inline-block; padding:6px 12px; border-radius:6px; background:#ff1744; color:white; font-size:12px; font-weight:600;">8-10 Very High</span>
+                            <span style="display:inline-block; padding:6px 12px; border-radius:6px; background:#d500f9; color:white; font-size:12px; font-weight:600;">10+ Serious</span>
+                        </div>
+
+                        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                            <thead>
+                                <tr style="background:#f9fafb; font-weight:600; color:#374151;">
+                                    <th style="padding:10px; text-align:left; border-bottom:2px solid #e5e7eb;">Level</th>
+                                    <th style="padding:10px; text-align:center; border-bottom:2px solid #e5e7eb;">Range</th>
+                                    <th style="padding:10px; text-align:left; border-bottom:2px solid #e5e7eb;">Health Advisory</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding:10px; border-bottom:1px solid #e5e7eb;"><span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:#00e676; margin-right:6px;"></span>Low</td>
+                                    <td style="padding:10px; text-align:center; border-bottom:1px solid #e5e7eb;">1–3</td>
+                                    <td style="padding:10px; color:#4b5563; border-bottom:1px solid #e5e7eb;">No health risk. Normal activities can continue.</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border-bottom:1px solid #e5e7eb;"><span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:#ffea00; margin-right:6px;"></span>Moderate</td>
+                                    <td style="padding:10px; text-align:center; border-bottom:1px solid #e5e7eb;">4–6</td>
+                                    <td style="padding:10px; color:#4b5563; border-bottom:1px solid #e5e7eb;">Sensitive groups (children, elderly, heart/lung conditions) consider reducing prolonged outdoor exertion.</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border-bottom:1px solid #e5e7eb;"><span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:#ff6d00; margin-right:6px;"></span>High</td>
+                                    <td style="padding:10px; text-align:center; border-bottom:1px solid #e5e7eb;">7</td>
+                                    <td style="padding:10px; color:#4b5563; border-bottom:1px solid #e5e7eb;">Sensitive groups reduce outdoor exertion. General public limit prolonged strenuous activities.</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px; border-bottom:1px solid #e5e7eb;"><span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:#ff1744; margin-right:6px;"></span>Very High</td>
+                                    <td style="padding:10px; text-align:center; border-bottom:1px solid #e5e7eb;">8–10</td>
+                                    <td style="padding:10px; color:#4b5563; border-bottom:1px solid #e5e7eb;">Sensitive groups avoid outdoor exertion. General public reduce outdoor activities.</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px;"><span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:#d500f9; margin-right:6px;"></span>Serious</td>
+                                    <td style="padding:10px; text-align:center;">10+</td>
+                                    <td style="padding:10px; color:#4b5563;">Everyone minimize outdoor exertion. Move activities indoors or reschedule.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+
+                <div style="margin-top:20px; padding:16px; background:#f0f9ff; border-left:4px solid #0ea5e9; border-radius:6px;">
+                    <p style="margin:0; font-size:13px; color:#0c4a6e;">
+                        <strong>💡 Note:</strong> The AQHI shown in the dashboard header represents the Hong Kong-wide average across all monitoring stations. Individual station values may vary.
+                    </p>
+                </div>
+
+                <div style="margin-top:16px; font-size:12px; color:#6b7280;">
+                    <p style="margin:0;">📚 Data source: <a href="https://www.aqhi.gov.hk" target="_blank" style="color:#667eea;">Hong Kong Environmental Protection Department (EPD)</a></p>
+                </div>
+            `;
+        }
+
+        async function loadMetricDetails(metricType) {
+            const metricInfo = {
+                temperature: {
+                    title: '<img class="warning-icon" src="assets/temp.png"> Temperature',
+                    description: 'Air temperature measured in degrees Celsius. Temperature affects comfort levels and energy consumption. Hong Kong experiences subtropical climate with hot summers and mild winters.',
+                    hasForecast: true,
+                    chartType: 'temperature'
+                },
+                humidity: {
+                    title: '<img class="warning-icon" src="assets/hum.png"> Humidity',
+                    description: 'Relative humidity indicates the amount of moisture in the air. High humidity can make hot weather feel more uncomfortable. Hong Kong typically has high humidity year-round.',
+                    hasForecast: true,
+                    chartType: 'humidity'
+                },
+                uv: {
+                    title: '<img class="warning-icon" src="assets/uv.png"> UV Index',
+                    description: 'UV Index measures ultraviolet radiation intensity. Higher values indicate greater risk of skin damage. Levels: 0-2 Low, 3-5 Moderate, 6-7 High, 8-10 Very High, 11+ Extreme.',
+                    hasForecast: false
+                },
+                rain: {
+                    title: '<img class="warning-icon" src="assets/rain.png"> Rainfall',
+                    description: 'Precipitation measured in millimeters. Shows recent rainfall accumulation. Hong Kong receives most rainfall during the monsoon season (May-September).',
+                    hasForecast: true,
+                    chartType: 'rain'
+                },
+                wind: {
+                    title: '<img class="warning-icon" src="assets/wind.png"> Wind',
+                    description: 'Wind speed and direction. Measured in kilometers per hour. Important for outdoor activities and air quality dispersion. Strong winds can indicate approaching weather systems.',
+                    hasForecast: false
+                },
+                visibility: {
+                    title: '<img class="warning-icon" src="assets/visibility.png"> Visibility',
+                    description: 'Horizontal visibility distance in kilometers. Reduced visibility can be caused by fog, haze, or air pollution. Important for aviation and maritime activities.',
+                    hasForecast: false
+                },
+                no2: {
+                    title: 'Nitrogen Dioxide (NO₂)',
+                    description: 'A reddish-brown gas primarily from vehicle emissions and power plants. Can irritate airways and worsen respiratory conditions. Measured in µg/m³.',
+                    hasForecast: false
+                },
+                o3: {
+                    title: 'Ozone (O₃)',
+                    description: 'Ground-level ozone forms when pollutants react with sunlight. Can cause breathing difficulties and reduce lung function. Typically higher on hot, sunny days.',
+                    hasForecast: false
+                },
+                so2: {
+                    title: 'Sulfur Dioxide (SO₂)',
+                    description: 'Produced by burning fossil fuels and industrial processes. Can cause respiratory problems and acid rain. Measured in µg/m³.',
+                    hasForecast: false
+                },
+                co: {
+                    title: 'Carbon Monoxide (CO)',
+                    description: 'Colorless, odorless gas from incomplete combustion. Mainly from vehicle exhaust. Reduces oxygen delivery to body tissues.',
+                    hasForecast: false
+                },
+                pm10: {
+                    title: 'PM₁₀ Particulate Matter',
+                    description: 'Particles with diameter ≤10 micrometers. Can be inhaled into lungs causing respiratory issues. Sources include dust, pollen, and combustion.',
+                    hasForecast: false
+                },
+                pm25: {
+                    title: 'PM₂.₅ Particulate Matter',
+                    description: 'Fine particles ≤2.5 micrometers. Can penetrate deep into lungs and bloodstream. Major health concern from vehicle emissions and industrial sources.',
+                    hasForecast: false
+                }
+            };
+
+            const info = metricInfo[metricType];
+            if (!info) return '<p>Metric information not available.</p>';
+
+            let html = `<h2>${info.title}</h2>`;
+            html += `<div class="metric-description"><p>${info.description}</p></div>`;
+
+            // Inject pollutant grading ranges (only for the selected pollutant)
+            const pollutantTypes = ['no2','o3','so2','co','pm10','pm25'];
+            if (pollutantTypes.includes(metricType)) {
+                const pollutantMeta = {
+                    no2: { label: 'NO₂', checks: [50, 100, 150, 200, 300, 9999], unit: 'µg/m³', name: 'Nitrogen Dioxide' },
+                    o3:  { label: 'O₃',  checks: [80, 120, 160, 200, 250, 9999], unit: 'µg/m³', name: 'Ozone' },
+                    so2: { label: 'SO₂', checks: [100, 200, 350, 500, 750, 9999], unit: 'µg/m³', name: 'Sulfur Dioxide' },
+                    co:  { label: 'CO',  checks: [5000, 10000, 15000, 20000, 30000, 999999999999], unit: 'µg/m³', name: 'Carbon Monoxide' },
+                    pm10:{ label: 'PM₁₀',checks: [30, 60, 100, 150, 200, 9999], unit: 'µg/m³', name: 'PM₁₀ Particulate' },
+                    pm25:{ label: 'PM₂.₅',checks: [15, 30, 50, 75, 100, 9999], unit: 'µg/m³', name: 'PM₂.₅ Particulate' }
+                };
+
+                const advisoryByGrade = {
+                    1: { title: 'Good', text: 'Air quality poses little or no risk.' },
+                    2: { title: 'Fair', text: 'Acceptable; very sensitive people watch symptoms.' },
+                    3: { title: 'Moderate', text: 'Sensitive groups limit prolonged outdoor exertion.' },
+                    4: { title: 'Unhealthy (SG)', text: 'Sensitive groups reduce/avoid prolonged outdoor exertion.' },
+                    5: { title: 'Unhealthy', text: 'Everyone reduce heavy/prolonged exertion; sensitive groups avoid.' },
+                    6: { title: 'Very Unhealthy', text: 'Avoid outdoor exertion; move activities indoors.' }
+                };
+
+                const meta = pollutantMeta[metricType];
+                const colours = ["#00e5ff", "#00e676", "#ffea00", "#ff3d00", "#d50000", "#aa00ff"];
+
+                function format(n){ return n.toLocaleString('en-US'); }
+                function buildRanges(checks){
+                    const ranges = [];
+                    for (let i=0;i<checks.length;i++){
+                        const upper = checks[i];
+                        if (i === 0) {
+                            ranges.push({ grade: 1, range: `≤${format(upper)}` });
+                        } else if (i === checks.length - 1) {
+                            const prev = checks[i-1] + 1;
+                            ranges.push({ grade: i+1, range: `≥${format(prev)}` });
+                        } else {
+                            const prev = checks[i-1] + 1;
+                            ranges.push({ grade: i+1, range: `${format(prev)}–${format(upper)}` });
+                        }
+                    }
+                    return ranges;
+                }
+                const ranges = buildRanges(meta.checks);
+
+                html += `<div class="modal-section">
+                    <h3>${meta.label} Grading</h3>
+                    <details open style="margin-top:4px;">
+                        <summary style="cursor:pointer; font-size:12px; font-weight:600; color:#374151;">Show grading & advisory</summary>
+                        <div style="margin-top:8px;">
+                            <p style="font-size:11px; color:#6b7280; line-height:1.3; margin-bottom:6px;">Grade 1 = lowest concentration (best). Units: ${meta.unit}. Simplified visual scale; not an official health index.</p>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 10px;">
+                                ${ranges.map(r => {
+                                    const col = colours[r.grade-1];
+                                    const useLight = ['#d50000','#aa00ff','#ff3d00'].includes(col);
+                                    const fg = useLight ? '#ffffff' : '#000000';
+                                    return `<span style=\"background:${col};color:${fg};padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;min-width:26px;text-align:center;\">${r.grade}</span>`;
+                                }).join('')}
+                            </div>
+                            <table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:8px;">
+                                <thead>
+                                    <tr style="background:#f3f4f6;">
+                                        <th style="text-align:left; padding:5px 6px; border:1px solid #e5e7eb;">Grade</th>
+                                        <th style="text-align:left; padding:5px 6px; border:1px solid #e5e7eb;">${meta.label} Range</th>
+                                        <th style="text-align:left; padding:5px 6px; border:1px solid #e5e7eb;">Advisory</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${ranges.map(r => `<tr ${r.grade%2===0? 'style=\"background:#fafafa;\"':''}>
+                                        <td style=\"padding:5px 6px; border:1px solid #e5e7eb; font-weight:600;\">${r.grade}</td>
+                                        <td style=\"padding:5px 6px; border:1px solid #e5e7eb;\">${r.range}</td>
+                                        <td style=\"padding:5px 6px; border:1px solid #e5e7eb;\"><span style=\"font-weight:600;\">${advisoryByGrade[r.grade].title}:</span> ${advisoryByGrade[r.grade].text}</td>
+                                    </tr>`).join('')}
+                                </tbody>
+                            </table>
+                            <p style="font-size:10px; color:#9ca3af;">Guide only – consult official sources for health advisories.</p>
+                        </div>
+                    </details>
+                </div>`;
+            }
+
+            if (info.hasForecast) {
+                try {
+                    const forecastData = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en');
+                    const forecast = await forecastData.json();
+                    
+                    if (info.chartType === 'temperature') {
+                        html += generateTemperatureChart(forecast.weatherForecast);
+                    } else if (info.chartType === 'rain') {
+                        html += generateRainChart(forecast.weatherForecast);
+                    } else if (info.chartType === 'humidity') {
+                        html += generateHumidityChart(forecast.weatherForecast);
+                    }
+                } catch (err) {
+                    console.error('Forecast fetch failed:', err);
+                    html += '<p style="color:#9ca3af; font-size:13px;">Forecast data unavailable</p>';
+                }
+            }
+
+            return html;
+        }
+
+        function generateTemperatureChart(forecastData) {
+            const days = forecastData.slice(0, 7);
+            
+            // Find actual min and max temperatures in the forecast
+            const allMaxTemps = days.map(d => d.forecastMaxtemp?.value || 0);
+            const allMinTemps = days.map(d => d.forecastMintemp?.value || 0);
+            const actualMax = Math.max(...allMaxTemps);
+            const actualMin = Math.min(...allMinTemps);
+            
+            // Add buffer (20% of range) for better visualization
+            const tempRange = actualMax - actualMin;
+            const buffer = Math.max(tempRange * 0.2, 3); // Minimum 3° buffer
+            const scaleMin = actualMin - buffer;
+            const scaleMax = actualMax + buffer;
+            const scaleRange = scaleMax - scaleMin;
+            
+            let html = '<div class="forecast-chart"><h3 style="margin-bottom:16px; color:#374151;">7-Day Temperature Forecast</h3>';
+            html += '<div style="position:relative; height:250px; padding:10px 10px 70px 45px;">';
+            
+            const chartHeight = 170;
+            
+            // Draw grid lines for reference
+            html += `<div style="position:absolute; bottom:70px; left:45px; right:10px; height:${chartHeight}px; border-bottom:2px solid #d1d5db;">`;
+            for (let i = 0; i <= 4; i++) {
+                const temp = scaleMin + (scaleRange * i / 4);
+                const positionPx = (i / 4) * chartHeight;
+                html += `<div style="position:absolute; bottom:${positionPx}px; left:0; right:0; border-top:1px solid #e5e7eb; height:0;">
+                    <span style="position:absolute; left:-40px; top:-8px; font-size:10px; color:#9ca3af; width:35px; text-align:right;">${Math.round(temp)}°</span>
+                </div>`;
+            }
+            html += '</div>';
+            
+            // Draw bars container
+            html += `<div style="position:absolute; bottom:70px; left:45px; right:10px; height:${chartHeight}px; display:flex; justify-content:space-around; gap:4px;">`;
+            
+            days.forEach(day => {
+                const max = day.forecastMaxtemp?.value || 0;
+                const min = day.forecastMintemp?.value || 0;
+                const dayLabel = day.week.substring(0, 3);
+                const iconCode = day.ForecastIcon || 50;
+                
+                // Calculate positions in pixels for precision
+                const maxHeightPx = ((max - scaleMin) / scaleRange) * chartHeight;
+                const minHeightPx = ((min - scaleMin) / scaleRange) * chartHeight;
+                const barHeightPx = maxHeightPx - minHeightPx;
+                
+                html += `
+                    <div style="flex:1; position:relative; height:${chartHeight}px;">
+                        <div style="position:absolute; bottom:${minHeightPx}px; left:10%; right:10%; height:${barHeightPx}px; background:linear-gradient(180deg, #667eea 0%, #764ba2 100%); border-radius:6px; min-height:4px;">
+                            <div style="position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:11px; font-weight:700; color:#667eea; white-space:nowrap;">${max}°</div>
+                            <div style="position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); font-size:10px; color:#9ca3af; white-space:nowrap;">${min}°</div>
+                        </div>
+                        <div style="position:absolute; bottom:-54px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:2px;">
+                            <img src="assets/HKO/pic${iconCode}.png" alt="Weather" style="width:24px; height:24px; object-fit:contain;" />
+                            <div style="font-size:11px; font-weight:600; color:#374151; white-space:nowrap;">${dayLabel}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div></div>';
+            html += `<p style="font-size:11px; color:#9ca3af; margin-top:8px; text-align:center;">Temperature range: ${Math.round(scaleMin)}° - ${Math.round(scaleMax)}°C</p>`;
+            html += '</div>';
+            return html;
+        }
+
+        function generateHumidityChart(forecastData) {
+            const days = forecastData.slice(0, 7);
+            
+            // Find actual min and max humidity in the forecast
+            const allMaxRH = days.map(d => d.forecastMaxrh?.value || 0);
+            const allMinRH = days.map(d => d.forecastMinrh?.value || 0);
+            const actualMax = Math.max(...allMaxRH);
+            const actualMin = Math.min(...allMinRH);
+            
+            // Add buffer (20% of range) for better visualization
+            const rhRange = actualMax - actualMin;
+            const buffer = Math.max(rhRange * 0.2, 5); // Minimum 5% buffer
+            const scaleMin = Math.max(0, actualMin - buffer);
+            const scaleMax = Math.min(100, actualMax + buffer);
+            const scaleRange = scaleMax - scaleMin;
+            
+            let html = '<div class="forecast-chart"><h3 style="margin-bottom:16px; color:#374151;">7-Day Humidity Forecast</h3>';
+            html += '<div style="position:relative; height:250px; padding:10px 10px 70px 45px;">';
+            
+            const chartHeight = 170;
+            
+            // Draw grid lines for reference
+            html += `<div style="position:absolute; bottom:70px; left:45px; right:10px; height:${chartHeight}px; border-bottom:2px solid #d1d5db;">`;
+            for (let i = 0; i <= 4; i++) {
+                const rh = scaleMin + (scaleRange * i / 4);
+                const positionPx = (i / 4) * chartHeight;
+                html += `<div style="position:absolute; bottom:${positionPx}px; left:0; right:0; border-top:1px solid #e5e7eb; height:0;">
+                    <span style="position:absolute; left:-40px; top:-8px; font-size:10px; color:#9ca3af; width:35px; text-align:right;">${Math.round(rh)}%</span>
+                </div>`;
+            }
+            html += '</div>';
+            
+            // Draw bars container
+            html += `<div style="position:absolute; bottom:70px; left:45px; right:10px; height:${chartHeight}px; display:flex; justify-content:space-around; gap:4px;">`;
+            
+            days.forEach(day => {
+                const max = day.forecastMaxrh?.value || 0;
+                const min = day.forecastMinrh?.value || 0;
+                const dayLabel = day.week.substring(0, 3);
+                const iconCode = day.ForecastIcon || 50;
+                
+                // Calculate positions in pixels for precision
+                const maxHeightPx = ((max - scaleMin) / scaleRange) * chartHeight;
+                const minHeightPx = ((min - scaleMin) / scaleRange) * chartHeight;
+                const barHeightPx = maxHeightPx - minHeightPx;
+                
+                html += `
+                    <div style="flex:1; position:relative; height:${chartHeight}px;">
+                        <div style="position:absolute; bottom:${minHeightPx}px; left:10%; right:10%; height:${barHeightPx}px; background:linear-gradient(180deg, #3b82f6 0%, #1e40af 100%); border-radius:6px; min-height:4px;">
+                            <div style="position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:11px; font-weight:700; color:#3b82f6; white-space:nowrap;">${max}%</div>
+                            <div style="position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); font-size:10px; color:#9ca3af; white-space:nowrap;">${min}%</div>
+                        </div>
+                        <div style="position:absolute; bottom:-54px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:2px;">
+                            <img src="assets/HKO/pic${iconCode}.png" alt="Weather" style="width:24px; height:24px; object-fit:contain;" />
+                            <div style="font-size:11px; font-weight:600; color:#374151; white-space:nowrap;">${dayLabel}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div></div>';
+            html += `<p style="font-size:11px; color:#9ca3af; margin-top:8px; text-align:center;">Humidity range: ${Math.round(scaleMin)}% - ${Math.round(scaleMax)}%</p>`;
+            html += '</div>';
+            return html;
+        }
+
+        function generateRainChart(forecastData) {
+            const days = forecastData.slice(0, 7);
+            
+            // Map PSR levels to numeric values for dynamic scaling
+            const psrToValue = {
+                'Low': 10,
+                'Medium Low': 25,
+                'Medium': 50,
+                'Medium High': 75,
+                'High': 95
+            };
+            
+            const psrToColor = {
+                'Low': '#10b981',
+                'Medium Low': '#3b82f6',
+                'Medium': '#f59e0b',
+                'Medium High': '#ef4444',
+                'High': '#7c3aed'
+            };
+            
+            const psrToRange = {
+                'Low': '0-5mm',
+                'Medium Low': '5-15mm',
+                'Medium': '15-30mm',
+                'Medium High': '30-50mm',
+                'High': '50mm+'
+            };
+            
+            // Find min and max PSR values in forecast
+            const psrValues = days.map(d => psrToValue[d.PSR || 'Low']);
+            const minValue = Math.min(...psrValues);
+            const maxValue = Math.max(...psrValues);
+            
+            // Add buffer for better visualization
+            const range = maxValue - minValue;
+            const buffer = Math.max(range * 0.15, 10); // At least 10% buffer
+            const scaleMin = Math.max(0, minValue - buffer);
+            const scaleMax = Math.min(100, maxValue + buffer);
+            const scaleRange = scaleMax - scaleMin;
+            
+            let html = '<div class="forecast-chart"><h3 style="margin-bottom:16px; color:#374151;">7-Day Rain Probability & Expected Range</h3>';
+            html += '<div style="position:relative; height:250px; padding:10px 10px 70px 45px;">';
+            
+            const chartHeight = 170;
+            
+            // Draw grid lines
+            html += `<div style="position:absolute; bottom:70px; left:45px; right:10px; height:${chartHeight}px; border-bottom:2px solid #d1d5db;">`;
+            for (let i = 0; i <= 4; i++) {
+                const value = scaleMin + (scaleRange * i / 4);
+                const positionPx = (i / 4) * chartHeight;
+                html += `<div style="position:absolute; bottom:${positionPx}px; left:0; right:0; border-top:1px solid #e5e7eb; height:0;">
+                    <span style="position:absolute; left:-40px; top:-8px; font-size:10px; color:#9ca3af; width:35px; text-align:right;">${Math.round(value)}%</span>
+                </div>`;
+            }
+            html += '</div>';
+            
+            // Draw bars container
+            html += `<div style="position:absolute; bottom:70px; left:45px; right:10px; height:${chartHeight}px; display:flex; justify-content:space-around; gap:4px;">`;
+            
+            days.forEach(day => {
+                const psr = day.PSR || 'Low';
+                const dayLabel = day.week.substring(0, 3);
+                const value = psrToValue[psr];
+                const color = psrToColor[psr];
+                const rainRange = psrToRange[psr];
+                const iconCode = day.ForecastIcon || 50;
+                
+                // Calculate bar height in pixels with proper scaling
+                const barHeightPx = ((value - scaleMin) / scaleRange) * chartHeight;
+                
+                html += `
+                    <div style="flex:1; position:relative; height:${chartHeight}px;">
+                        <div style="position:absolute; bottom:0; left:10%; right:10%; height:${barHeightPx}px; background:linear-gradient(180deg, ${color} 0%, ${color}aa 100%); border-radius:6px 6px 0 0; min-height:4px;">
+                            <div style="position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:10px; font-weight:700; color:${color}; white-space:nowrap;">${psr}</div>
+                        </div>
+                        <div style="position:absolute; bottom:-54px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:2px;">
+                            <img src="assets/HKO/pic${iconCode}.png" alt="Weather" style="width:24px; height:24px; object-fit:contain;" />
+                            <div style="font-size:11px; font-weight:600; color:#374151; white-space:nowrap;">${dayLabel}</div>
+                            <div style="font-size:9px; color:#6b7280; font-weight:600;">${rainRange}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div></div>';
+            html += '<p style="font-size:11px; color:#9ca3af; margin-top:8px; text-align:center;">* Rainfall ranges are estimates based on probability categories</p>';
+            html += '</div>';
+            return html;
+        }
+
+        function toggleTrafficDetail(itemId) {
+            const fullDiv = document.getElementById(itemId + '-full');
+            const btn = document.getElementById(itemId + '-btn');
+            
+            if (fullDiv.style.display === 'none') {
+                fullDiv.style.display = 'block';
+                btn.textContent = 'Show less';
+            } else {
+                fullDiv.style.display = 'none';
+                btn.textContent = 'Show more';
+            }
+        }
+
+        async function loadEventsData() {
+            try {
+                const res = await fetch('https://purple-river-7d7a.trials-9f5.workers.dev/?feed=holidays');
+                const data = await res.json();
+                
+                const events = data?.vcalendar?.[0]?.vevent || [];
+                if (events.length === 0) {
+                    return '<h2>📅 Public Holidays</h2><div class="modal-section"><p>No holiday data available.</p></div>';
+                }
+                
+                // Parse and sort holidays
+                const now = new Date();
+                const holidays = events.map(evt => {
+                    const dateStr = Array.isArray(evt.dtstart) ? evt.dtstart[0] : evt.dtstart;
+                    const year = parseInt(dateStr.substring(0, 4));
+                    const month = parseInt(dateStr.substring(4, 6)) - 1;
+                    const day = parseInt(dateStr.substring(6, 8));
+                    const date = new Date(year, month, day);
+                    
+                    return {
+                        date: date,
+                        dateStr: dateStr,
+                        summary: evt.summary || 'Holiday',
+                        isPast: date < now
+                    };
+                }).sort((a, b) => a.date - b.date);
+                
+                // Split into upcoming and past
+                const upcoming = holidays.filter(h => !h.isPast).slice(0, 10);
+                const recent = holidays.filter(h => h.isPast).slice(-5).reverse();
+                
+                let html = '<h2>📅 Hong Kong Public Holidays</h2><div class="modal-section">';
+                
+                if (upcoming.length > 0) {
+                    html += '<h3 style="margin-top:0; color:#667eea;">Upcoming Holidays</h3>';
+                    upcoming.forEach(h => {
+                        const dayName = h.date.toLocaleDateString('en-US', { weekday: 'short' });
+                        const dateFormatted = h.date.toLocaleDateString('en-HK', { year: 'numeric', month: 'short', day: 'numeric' });
+                        const daysUntil = Math.ceil((h.date - now) / (1000 * 60 * 60 * 24));
+                        
+                        html += `
+                            <div class="news-item" style="border-left-color: #22c55e;">
+                                <h4 style="color:#1f2937; margin:0 0 4px 0;">${h.summary}</h4>
+                                <p style="margin:4px 0; color:#6b7280; font-size:13px;">${dayName}, ${dateFormatted}</p>
+                                <p style="margin:4px 0; color:#22c55e; font-size:12px; font-weight:600;">${daysUntil === 0 ? 'Today!' : daysUntil === 1 ? 'Tomorrow' : `In ${daysUntil} days`}</p>
+                            </div>
+                        `;
+                    });
+                }
+                
+                if (recent.length > 0) {
+                    html += '<h3 style="margin-top:16px; color:#9ca3af;">Recent Holidays</h3>';
+                    recent.forEach(h => {
+                        const dayName = h.date.toLocaleDateString('en-US', { weekday: 'short' });
+                        const dateFormatted = h.date.toLocaleDateString('en-HK', { year: 'numeric', month: 'short', day: 'numeric' });
+                        
+                        html += `
+                            <div class="news-item" style="border-left-color: #d1d5db; opacity: 0.7;">
+                                <h4 style="color:#6b7280; margin:0 0 4px 0;">${h.summary}</h4>
+                                <p style="margin:4px 0; color:#9ca3af; font-size:13px;">${dayName}, ${dateFormatted}</p>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += '</div>';
+                return html;
+            } catch (err) {
+                console.error('Events fetch failed:', err);
+                return '<h2>📅 Public Holidays</h2><div class="error-message">Unable to load holiday data.</div>';
+            }
+        }
+
+        async function checkTodayHoliday() {
+            try {
+                const res = await fetch('https://purple-river-7d7a.trials-9f5.workers.dev/?feed=holidays');
+                const data = await res.json();
+                
+                const events = data?.vcalendar?.[0]?.vevent || [];
+                if (events.length === 0) return;
+                
+                const today = new Date();
+                const todayStr = today.getFullYear() + 
+                                String(today.getMonth() + 1).padStart(2, '0') + 
+                                String(today.getDate()).padStart(2, '0');
+                
+                const todayHoliday = events.find(evt => {
+                    const dateStr = Array.isArray(evt.dtstart) ? evt.dtstart[0] : evt.dtstart;
+                    return dateStr === todayStr;
+                });
+                
+                if (todayHoliday) {
+                    const banner = document.getElementById('holidayBanner');
+                    banner.textContent = `🎉 ${todayHoliday.summary}`;
+                    banner.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Holiday check failed:', err);
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            const metricModal = document.getElementById('metricModal');
+            
+            if (event.target === modal) {
+                closeModal();
+            }
+            if (event.target === metricModal) {
+                closeMetricModal();
+            }
+        };
+
+                // --- Live data wiring (self-contained; does not modify index.html or script.js) ---
+                ;(function(){
+                    const workerBase = "https://purple-river-7d7a.trials-9f5.workers.dev/?feed=";
+                    const aqhiUrl = workerBase + "aqhi";
+                    const pollutantUrl = workerBase + "pollutants";
+                    const weatherUrl = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en";
+                    const warningsUrl = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=en";
+                    const windCsvProxyUrl = workerBase + "windcsv";
+                    const windCsvUrl = "https://data.weather.gov.hk/weatherAPI/hko_data/regional-weather/latest_10min_wind.csv";
+                    const visCsvProxyUrl = workerBase + "visibility";
+                    const visCsvUrl = "https://data.weather.gov.hk/weatherAPI/opendata/opendata.php?dataType=LTMV&lang=en&rformat=csv";
+
+                    const stationSelect = document.getElementById('stationSelector');
+                    const tempValueEl = document.getElementById('tempValue');
+                    const humidityValueEl = document.getElementById('humidityValue');
+                    const uvValueEl = document.getElementById('uvValue');
+                    const rainValueEl = document.getElementById('rainValue');
+                    const windValueEl = document.getElementById('windValue');
+                    const visibilityValueEl = document.getElementById('visibilityValue');
+
+                    const no2ValueEl = document.getElementById('no2Value');
+                    const o3ValueEl = document.getElementById('o3Value');
+                    const so2ValueEl = document.getElementById('so2Value');
+                    const coValueEl = document.getElementById('coValue');
+                    const pm10ValueEl = document.getElementById('pm10Value');
+                    const pm25ValueEl = document.getElementById('pm25Value');
+                    const warningsContainer = document.getElementById('warningsContainer');
+
+                    // Robust fetch with retry logic for CORS reliability
+                    async function fetchWithRetry(url, options = {}, retries = 3) {
+                        for (let attempt = 0; attempt < retries; attempt++) {
+                            try {
+                                // Add cache-busting on retries to bypass edge cache issues
+                                const fetchUrl = attempt > 0 
+                                    ? url + (url.includes('?') ? '&' : '?') + `_retry=${attempt}&_ts=${Date.now()}`
+                                    : url;
+                                
+                                const response = await fetch(fetchUrl, {
+                                    ...options,
+                                    headers: {
+                                        ...options.headers,
+                                        // Ensure Origin header is sent for CORS
+                                        'Accept': options.headers?.Accept || 'application/json'
+                                    }
+                                });
+                                
+                                if (!response.ok) {
+                                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                                }
+                                
+                                // Log successful fetch with retry info if applicable
+                                if (attempt > 0) {
+                                    console.log(`[RETRY SUCCESS] ${url} succeeded on attempt ${attempt + 1}`);
+                                }
+                                
+                                return response;
+                                
+                            } catch (error) {
+                                const isLastAttempt = attempt === retries - 1;
+                                
+                                // Log the error
+                                console.warn(`[FETCH ATTEMPT ${attempt + 1}/${retries}] ${url} failed:`, error.message);
+                                
+                                // If this is the last attempt, throw the error
+                                if (isLastAttempt) {
+                                    console.error(`[FETCH FAILED] ${url} failed after ${retries} attempts`);
+                                    throw error;
+                                }
+                                
+                                // Wait before retrying (exponential backoff: 500ms, 1000ms, 2000ms...)
+                                const delay = 500 * Math.pow(2, attempt);
+                                await new Promise(resolve => setTimeout(resolve, delay));
+                            }
+                        }
+                    }
+
+                    const stationWeatherMap = {
+                        // Only 4 visibility stations: Central, Chek Lap Kok, Sai Wan Ho, Waglan Island
+                        // Mapping generously based on geographic proximity
+                        "Central/Western": { tempPlace: "Hong Kong Observatory", rainPlace: "Central & Western District", windPlace: "Central Pier", visPlace: "Central" },
+                        "Central": { tempPlace: "Hong Kong Observatory", rainPlace: "Central & Western District", windPlace: "Central Pier", visPlace: "Central" },
+                        "Eastern": { tempPlace: "King's Park", rainPlace: "Eastern District", windPlace: "North Point", visPlace: "Sai Wan Ho" },
+                        "Islands": { tempPlace: "Chek Lap Kok", rainPlace: "Islands District", windPlace: "Chek Lap Kok", visPlace: "Chek Lap Kok" },
+                        "North": { tempPlace: "Ta Kwu Ling", rainPlace: "North District", windPlace: "Ta Kwu Ling", visPlace: "Sai Wan Ho" },
+                        "Sai Kung": { tempPlace: "Sai Kung", rainPlace: "Sai Kung", windPlace: "Sai Kung", visPlace: "Sai Wan Ho" },
+                        "Sha Tin": { tempPlace: "Sha Tin", rainPlace: "Sha Tin", windPlace: "Sha Tin", visPlace: "Sai Wan Ho" },
+                        "Southern": { tempPlace: "Wong Chuk Hang", rainPlace: "Southern District", windPlace: "Wong Chuk Hang", visPlace: "Central" },
+                        "Tai Po": { tempPlace: "Tai Po", rainPlace: "Tai Po", windPlace: "Tai Po Kau", visPlace: "Sai Wan Ho" },
+                        "Tsuen Wan": { tempPlace: "Tsuen Wan Shing Mun Valley", rainPlace: "Tsuen Wan", windPlace: "Tsing Yi", visPlace: "Central" },
+                        "Tuen Mun": { tempPlace: "Tuen Mun", rainPlace: "Tuen Mun", windPlace: "Tuen Mun", visPlace: "Chek Lap Kok" },
+                        "Wan Chai": { tempPlace: "Happy Valley", rainPlace: "Wan Chai", windPlace: "Star Ferry", visPlace: "Central" },
+                        "Yuen Long": { tempPlace: "Yuen Long Park", rainPlace: "Yuen Long", windPlace: "Wetland Park", visPlace: "Chek Lap Kok" },
+                        "Yau Tsim Mong": { tempPlace: "King's Park", rainPlace: "Yau Tsim Mong", windPlace: "King's Park", visPlace: "Central" },
+                        "Kowloon City": { tempPlace: "Kowloon City", rainPlace: "Kowloon City", windPlace: "Kai Tak", visPlace: "Sai Wan Ho" },
+                        "Sham Shui Po": { tempPlace: "Sham Shui Po", rainPlace: "Sham Shui Po", windPlace: "King's Park", visPlace: "Central" },
+                        "Wong Tai Sin": { tempPlace: "Wong Tai Sin", rainPlace: "Wong Tai Sin", windPlace: "Tate's Cairn", visPlace: "Sai Wan Ho" },
+                        "Kwun Tong": { tempPlace: "Kwun Tong", rainPlace: "Kwun Tong", windPlace: "Kai Tak", visPlace: "Sai Wan Ho" },
+                        // Additional AQHI stations
+                        "Kwai Chung": { tempPlace: "Tsing Yi", rainPlace: "Kwai Tsing", windPlace: "Tsing Yi", visPlace: "Central" },
+                        "Tseung Kwan O": { tempPlace: "Tseung Kwan O", rainPlace: "Sai Kung", windPlace: "Tseung Kwan O", visPlace: "Sai Wan Ho" },
+                        "Tung Chung": { tempPlace: "Chek Lap Kok", rainPlace: "Islands District", windPlace: "Chek Lap Kok", visPlace: "Chek Lap Kok" },
+                        "Tap Mun": { tempPlace: "Tap Mun", rainPlace: "North District", windPlace: "Tap Mun", visPlace: "Waglan Island" },
+                        "Causeway Bay": { tempPlace: "Happy Valley", rainPlace: "Wan Chai", windPlace: "North Point", visPlace: "Sai Wan Ho" },
+                        "Mong Kok": { tempPlace: "King's Park", rainPlace: "Yau Tsim Mong", windPlace: "King's Park", visPlace: "Central" }
+                    };
+
+                    function getQueryParam(param){
+                        const urlParams = new URLSearchParams(window.location.search);
+                        return urlParams.get(param);
+                    }
+
+                                async function loadStations(){
+                        try{
+                            const res = await fetchWithRetry(aqhiUrl);
+                            const data = await res.json();
+                            // Populate selector
+                            stationSelect.innerHTML = '';
+                            data.forEach(s => {
+                                const opt = document.createElement('option');
+                                opt.value = s.station;
+                                opt.textContent = s.station;
+                                stationSelect.appendChild(opt);
+                            });
+
+                            const fromParam = getQueryParam('station');
+                            if (fromParam){
+                                const found = data.find(s => s.station.toLowerCase() === fromParam.toLowerCase());
+                                if (found) stationSelect.value = found.station;
+                            }
+                            if (!stationSelect.value && data.length) stationSelect.value = data[0].station;
+
+                            // Initial update
+                                            await updateForStation(stationSelect.value);
+                            // On change
+                            stationSelect.addEventListener('change', e => updateForStation(e.target.value));
+                        } catch(e){
+                            console.error('Failed to load stations', e);
+                                            // Fallback for local dev (CORS from Worker)
+                                            const fallbackStations = [
+                                                'Central/Western','Eastern','Kwai Chung','Sha Tin','Sham Shui Po','Tai Po','Tseung Kwan O','Tuen Mun','Tung Chung','Yuen Long','Causeway Bay','Mong Kok','Tap Mun','North','Kwun Tong','Tsuen Wan','Wong Tai Sin'
+                                            ];
+                                            stationSelect.innerHTML = '';
+                                            fallbackStations.forEach(name => {
+                                                const opt = document.createElement('option');
+                                                opt.value = name;
+                                                opt.textContent = name;
+                                                stationSelect.appendChild(opt);
+                                            });
+                                            document.getElementById('sd-status').style.display = 'block';
+                                            document.getElementById('sd-status').textContent = 'Note: Live AQHI/pollutants require the proxy when developing locally. Weather will still load. Open on GitHub Pages for full data.';
+                                            await updateForStation(stationSelect.value || fallbackStations[0]);
+                                            stationSelect.addEventListener('change', e => updateForStation(e.target.value));
+                        }
+                    }
+
+                    async function loadWarnings(){
+                        try {
+                            const res = await fetch(warningsUrl);
+                            const data = await res.json();
+
+                            const activeWarnings = Object.entries(data)
+                                .filter(([key, warning]) => warning.actionCode === "ISSUE")
+                                .map(([key, warning]) => ({
+                                    code: key,
+                                    ...warning
+                                }));
+
+                            if (activeWarnings.length === 0) {
+                                warningsContainer.innerHTML = '';
+                            } else {
+                                warningsContainer.innerHTML = activeWarnings.map(warning => {
+                                    const warningClass = getWarningClass(warning.code);
+                                    const name = getWarningName(warning.code);
+                                    const issueTime = new Date(warning.issueTime).toLocaleString("en-HK", { hour12: false });
+                                    let extra = "";
+                                    if (warning.code.startsWith("WTCSIGNAL") || warning.code.startsWith("WTYPHOON")) {
+                                        if (warning.type) {
+                                            extra = `Level: ${warning.type}`;
+                                        } else if (warning.name && warning.name.match(/No\.\s*\d+/i)) {
+                                            extra = warning.name;
+                                        }
+                                    }
+                                    const warningData = JSON.stringify({name, issueTime, extra}).replace(/"/g, '&quot;');
+                                    return `
+                                        <img src="assets/${warning.code}.png" 
+                                             alt="${name}" 
+                                             class="warning-icon-small ${warningClass}" 
+                                             onclick="openWarningModal(${warningData})"
+                                             title="${name}"
+                                             style="cursor: pointer; border-radius: 6px; transition: transform 0.2s;"
+                                             onmouseover="this.style.transform='scale(1.1)'"
+                                             onmouseout="this.style.transform='scale(1)'"
+                                             onerror="this.style.display='none'" />
+                                    `;
+                                }).join("");
+                            }
+
+                            // Update forecast card visibility based on warning count
+                            updateForecastVisibility(activeWarnings.length);
+                        } catch (err) {
+                            console.error("Warnings fetch failed:", err);
+                            warningsContainer.innerHTML = '<div class="no-warnings">Unable to load weather warnings</div>';
+                            updateForecastVisibility(0);
+                        }
+                    }
+
+                    async function updateForStation(stationName){
+                        await Promise.all([
+                            loadWarnings(),
+                            updateWeather(stationName),
+                            updatePollutants(stationName)
+                        ]);
+                    }
+
+                    // Caches for CSVs to avoid frequent network calls
+                    let windCsvCache = { ts: 0, rows: [] };
+                    let visCsvCache = { ts: 0, rows: [] };
+
+                    // Color helper from main dashboard
+                    function setColour(value, checks, returns) {
+                        if (checks.length !== returns.length) {
+                            throw new Error("Checks and returns arrays must be the same length");
+                        }
+                        for (let i = 0; i < checks.length; i++) {
+                            if (value <= checks[i]) {
+                                return returns[i];
+                            }
+                        }
+                        return returns[returns.length - 1];
+                    }
+
+                    // Warning metadata
+                    const warningMetadata = {
+                        "WFIREY": { name: "Yellow Fire Danger Warning", icon: "🔥" },
+                        "WFIRER": { name: "Red Fire Danger Warning", icon: "🔥" },
+                        "WFIRE": { name: "Fire Danger Warning", icon: "🔥" },
+                        "WTYPHOON": { name: "Typhoon Warning", icon: "🌪️" },
+                        "WRAINSTORMY": { name: "Yellow Rainstorm Warning", icon: "🌧️" },
+                        "WRAINSTORMR": { name: "Red Rainstorm Warning", icon: "🌧️" },
+                        "WRAINSTORMB": { name: "Black Rainstorm Warning", icon: "🌧️" },
+                        "WRAINSTORM": { name: "Rainstorm Warning", icon: "🌧️" },
+                        "WUVI": { name: "High UV Warning", icon: "☀️" },
+                        "WSMOG": { name: "Smog Warning", icon: "💨" },
+                        "WSIGW": { name: "Significant Wave Warning", icon: "🌊" },
+                        "WTMW": { name: "Tsunami Warning", icon: "🌊" },
+                        "WCOLDRULE": { name: "Cold Weather Warning", icon: "❄️" },
+                        "WHOTULE": { name: "Hot Weather Warning", icon: "🌡️" },
+                        "WAIRPOL": { name: "Air Pollution Warning", icon: "💨" },
+                        "WLOWVIS": { name: "Low Visibility Warning", icon: "🌫️" },
+                        "WWIND": { name: "Wind Warning", icon: "💨" },
+                        "WMSGNL": { name: "Strong Monsoon Signal", icon: "💨" },
+                        "WTCSIGNAL": { name: "Tropical Cyclone Warning Signal", icon: "🌀" },
+                        "WTHUNDER": { name: "Thunderstorm Warning", icon: "⚡" },
+                        "WTS": { name: "Thunderstorm Warning", icon: "⚡" }
+                    };
+
+                    function getWarningIcon(type) {
+                        return warningMetadata[type]?.icon || "⚠️";
+                    }
+
+                    function getWarningName(type) {
+                        return warningMetadata[type]?.name || warningMetadata[type.replace(/.$/,"")]?.name || type;
+                    }
+
+                    function getWarningClass(typeCode) {
+                        const lastChar = typeCode.slice(-1).toUpperCase();
+                        if (lastChar === "R") return "red";
+                        if (lastChar === "B") return "black";
+                        return "yellow";
+                    }
+
+                    function parseWindDirectionWord(word){
+                        if (!word) return null;
+                        const map = { 'NORTH':'N','NORTH-NORTHEAST':'NNE','NORTHEAST':'NE','EAST-NORTHEAST':'ENE','EAST':'E','EAST-SOUTHEAST':'ESE','SOUTHEAST':'SE','SOUTH-SOUTHEAST':'SSW','SOUTH':'S','SOUTH-SOUTHWEST':'SSW','SOUTHWEST':'SW','WEST-SOUTHWEST':'WSW','WEST':'W','WEST-NORTHWEST':'WNW','NORTHWEST':'NW','NORTH-NORTHWEST':'NNW','VARIABLE': null };
+                        const key = String(word).toUpperCase().replace(/\s+/g,'-');
+                        return map[key] ?? null;
+                    }
+
+                    async function fetchWindCsv(){
+                        const now = Date.now();
+                        if (now - windCsvCache.ts < 5*60*1000 && windCsvCache.rows.length) return windCsvCache.rows;
+                        let csv = '';
+                        try {
+                            let res = await fetch(windCsvProxyUrl, { cache: 'no-store', headers: { 'Accept': 'text/csv' } });
+                            if (!res.ok) throw new Error('Proxy not OK');
+                            csv = await res.text();
+                        } catch (e) {
+                            const res2 = await fetch(windCsvUrl, { cache: 'no-store', headers: { 'Accept': 'text/csv' } });
+                            csv = await res2.text();
+                        }
+                        const lines = csv.trim().split(/\r?\n/);
+                        const rows = [];
+                        for (let i=0;i<lines.length;i++){
+                            if (i===0 && /Automatic Weather Station/i.test(lines[0])) continue;
+                            const parts = lines[i].split(',');
+                            if (parts.length < 5) continue;
+                            const dt = parts[0].trim();
+                            const station = parts[1].trim();
+                            const dirWord = parts[2].trim();
+                            const mean = Number(parts[3].trim());
+                            const gust = Number(parts[4].trim());
+                            rows.push({ dt, station, dirWord, mean, gust });
+                        }
+                        windCsvCache = { ts: now, rows };
+                        return rows;
+                    }
+
+                    async function fetchVisibilityCsv(){
+                        const now = Date.now();
+                        if (now - visCsvCache.ts < 5*60*1000 && visCsvCache.rows.length) return visCsvCache.rows;
+                        let csv = '';
+                        try {
+                            let res = await fetch(visCsvProxyUrl, { cache: 'no-store', headers: { 'Accept': 'text/csv' } });
+                            if (!res.ok) throw new Error('Proxy not OK');
+                            csv = await res.text();
+                        } catch (e) {
+                            const res2 = await fetch(visCsvUrl, { cache: 'no-store', headers: { 'Accept': 'text/csv' } });
+                            csv = await res2.text();
+                        }
+                        const lines = csv.trim().split(/\r?\n/);
+                        const rows = [];
+                        for (let i=0;i<lines.length;i++){
+                            if (i===0 && /Automatic Weather Station/i.test(lines[0])) continue;
+                            const parts = lines[i].split(',');
+                            if (parts.length < 3) continue;
+                            const dt = parts[0].trim();
+                            const station = parts[1].trim().replace(/^"|"$/g,'');
+                            const visStr = parts[2].trim().replace(/^"|"$/g,'').replace(' km','');
+                            const visibility = Number(visStr);
+                            rows.push({ dt, station, visibility });
+                        }
+                        visCsvCache = { ts: now, rows };
+                        return rows;
+                    }
+
+                    async function applyWindFromCsv(aqhiStation){
+                        try{
+                            const rows = await fetchWindCsv();
+                            const mapping = stationWeatherMap[aqhiStation] || {};
+                            const target = mapping.windPlace;
+                            if (!target) return;
+                            const rec = rows.find(r => r.station.toLowerCase() === String(target).toLowerCase()) ||
+                                        rows.find(r => r.station.toLowerCase().includes(String(target).toLowerCase()));
+                            if (!rec) return;
+                            const abbr = parseWindDirectionWord(rec.dirWord);
+                            if (isNaN(rec.mean)) {
+                                windValueEl.textContent = '—';
+                            } else {
+                                windValueEl.textContent = `${rec.mean} km/h${abbr ? ' ' + abbr : ''}`;
+                                // Wind CSV override uses same bands as live reading
+                                windValueEl.style.backgroundColor = setColour(rec.mean, [9, 19, 39, 59, 79, 9999], ["#b2ff59", "#76ff03", "#ffea00", "#ff6d00", "#ff1744", "#d50000"]);
+                            }
+                        } catch(e){ console.warn('Wind CSV load failed', e); }
+                    }
+
+                    async function applyVisibilityFromCsv(aqhiStation){
+                        try{
+                            const rows = await fetchVisibilityCsv();
+                            const mapping = stationWeatherMap[aqhiStation] || {};
+                            const target = mapping.visPlace;
+                            if (!target) return;
+                            const rec = rows.find(r => r.station.toLowerCase() === String(target).toLowerCase()) ||
+                                        rows.find(r => r.station.toLowerCase().includes(String(target).toLowerCase()));
+                            if (!rec) return;
+                            if (isNaN(rec.visibility)) {
+                                visibilityValueEl.textContent = '—';
+                            } else {
+                                visibilityValueEl.textContent = `${rec.visibility} km`;
+                                // Visibility CSV override bands: ≤3 poor, 4–5 hazy, 6–8 moderate, 9–12 good, 13–20 very good, ≥21 excellent
+                                visibilityValueEl.style.backgroundColor = setColour(rec.visibility, [3, 5, 8, 12, 20, 9999], ["#ff1744", "#ffea00", "#b2ff59", "#76ff03", "#00e676", "#00e5ff"]);
+                            }
+                        } catch(e){ console.warn('Visibility CSV load failed', e); }
+                    }
+
+                    async function updateWeather(stationName){
+                        try{
+                            const res = await fetch(weatherUrl);
+                            const weatherData = await res.json();
+                            const mapping = stationWeatherMap[stationName] || { tempPlace: 'Hong Kong Observatory', rainPlace: 'Central & Western District' };
+
+                            const temp = weatherData.temperature?.data?.find(d => d.place === mapping.tempPlace);
+                            const rain = weatherData.rainfall?.data?.find(d => d.place === mapping.rainPlace);
+                            const humidity = weatherData.humidity?.data?.[0];
+                            const uv = weatherData.uvindex?.data?.[0];
+                            const wind = weatherData.wind || weatherData.wind?.data?.[0] || null;
+                            const visibility = weatherData.visibility?.data?.[0] || weatherData.visibility || null;
+
+                            // Update weather icon in panel switcher button (mobile) and desktop title
+                            const weatherIconEl = document.getElementById('weatherIcon');
+                            const weatherIconDesktopEl = document.getElementById('weatherIconDesktop');
+                            if (weatherData.icon && Array.isArray(weatherData.icon) && weatherData.icon.length > 0) {
+                                const iconCode = weatherData.icon[0];
+                                const iconUrl = `assets/hko/pic${iconCode}.png`;
+                                
+                                // Update mobile icon
+                                if (weatherIconEl) {
+                                    weatherIconEl.src = iconUrl;
+                                    weatherIconEl.style.display = 'inline';
+                                }
+                                
+                                // Update desktop icon
+                                if (weatherIconDesktopEl) {
+                                    weatherIconDesktopEl.src = iconUrl;
+                                    weatherIconDesktopEl.style.display = 'inline-block';
+                                }
+                            } else {
+                                if (weatherIconEl) weatherIconEl.style.display = 'none';
+                                if (weatherIconDesktopEl) weatherIconDesktopEl.style.display = 'none';
+                            }
+
+                            // Temperature with color coding (bands: ≤0, 1–10, 11–16, 17–23, 24–29, 30–32, ≥33)
+                            // Added heat stress pre-red band to distinguish hot vs very hot
+                            tempValueEl.textContent = (temp?.value != null) ? `${temp.value}°C` : '—';
+                            if (temp?.value != null) {
+                                tempValueEl.style.backgroundColor = setColour(temp.value, [0, 10, 16, 23, 29, 32, 9999], ["#0066ff", "#00e5ff", "#00ff00", "#ffcc00", "#ff6600", "#ff3300", "#ff0000"]);
+                            }
+
+                            // Humidity with color coding (comfort-oriented bands: ≤40 dry, 41–60 comfortable, 61–75 humid, 76–85 very humid, ≥86 oppressive)
+                            humidityValueEl.textContent = (humidity?.value != null) ? `${humidity.value}%` : '—';
+                            if (humidity?.value != null) {
+                                humidityValueEl.style.backgroundColor = setColour(humidity.value, [40, 60, 75, 85, 9999], ["#80d8ff", "#40c4ff", "#00b0ff", "#0091ea", "#01579b"]);
+                            }
+
+                            // UV Index with color coding (round to whole number) - bright greens to purples
+                            uvValueEl.textContent = (uv?.value != null) ? `${Math.round(uv.value)}` : '—';
+                            if (uv?.value != null) {
+                                uvValueEl.style.backgroundColor = setColour(uv.value, [2, 5, 7, 10, 9999], ["#00e676", "#ffea00", "#ff6d00", "#ff1744", "#d500f9"]);
+                            }
+
+                            // Rain with color coding (intensity bands: ≤1 trace, 2–10 light, 11–30 moderate, 31–70 heavy, 71–120 very heavy, ≥121 extreme)
+                            rainValueEl.textContent = (typeof rain?.max === 'number') ? `${rain.max} mm` : '—';
+                            if (typeof rain?.max === 'number') {
+                                rainValueEl.style.backgroundColor = setColour(rain.max, [1, 10, 30, 70, 120, 9999], ["#ffea00", "#2979ff", "#ff6d00", "#ff1744", "#800000", "#000000"]);
+                            }
+
+                            // Wind with color coding - vibrant greens to yellows to reds
+                            const windSpeed = (typeof wind?.speed === 'number') ? wind.speed : (typeof wind?.speed?.value === 'number') ? wind.speed.value : null;
+                            const windDir = wind?.direction?.value || wind?.direction || wind?.compassDirection || null;
+                            windValueEl.textContent = (windSpeed != null) ? `${windSpeed} km/h${windDir ? ' ' + windDir : ''}` : '—';
+                            if (windSpeed != null) {
+                                // Wind bands: ≤9 calm/light, 10–19 gentle, 20–39 moderate, 40–59 fresh/strong, 60–79 very strong, ≥80 gale+ 
+                                windValueEl.style.backgroundColor = setColour(windSpeed, [9, 19, 39, 59, 79, 9999], ["#b2ff59", "#76ff03", "#ffea00", "#ff6d00", "#ff1744", "#d50000"]);
+                            }
+
+                            // Visibility with color coding - reds to greens (reversed scale)
+                            const visVal = (typeof visibility?.value === 'number') ? visibility.value : (typeof visibility?.km === 'number') ? visibility.km : null;
+                            visibilityValueEl.textContent = (visVal != null) ? `${visVal} km` : '—';
+                            if (visVal != null) {
+                                visibilityValueEl.style.backgroundColor = setColour(visVal, [3, 5, 8, 12, 20, 9999], ["#ff1744", "#ffea00", "#b2ff59", "#76ff03", "#00e676", "#00e5ff"]);
+                            }
+
+                            // Override with station-specific CSV where available
+                            await applyWindFromCsv(stationName);
+                            await applyVisibilityFromCsv(stationName);
+                        } catch(e){
+                            console.error('Weather fetch failed', e);
+                            tempValueEl.textContent = humidityValueEl.textContent = uvValueEl.textContent = rainValueEl.textContent = windValueEl.textContent = visibilityValueEl.textContent = '—';
+                        }
+                    }
+
+                    // Forecast rotation for desktop weather panel header
+                    // Simple static 3-day forecast display
+                    // Store forecast cards for dynamic visibility control
+                    let forecastCards = [];
+
+                    async function initStaticForecast() {
+                        try {
+                            const res = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=en');
+                            const data = await res.json();
+                            
+                            if (data.weatherForecast && data.weatherForecast.length >= 3) {
+                                const today = new Date();
+                                const nextDay = new Date(today);
+                                nextDay.setDate(nextDay.getDate() + 2);
+                                
+                                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                                
+                                const forecasts = [
+                                    {
+                                        icon: data.weatherForecast[0].ForecastIcon,
+                                        label: 'Today',
+                                        minTemp: data.weatherForecast[0].forecastMintemp?.value,
+                                        maxTemp: data.weatherForecast[0].forecastMaxtemp?.value
+                                    },
+                                    {
+                                        icon: data.weatherForecast[1].ForecastIcon,
+                                        label: 'Tomorrow',
+                                        minTemp: data.weatherForecast[1].forecastMintemp?.value,
+                                        maxTemp: data.weatherForecast[1].forecastMaxtemp?.value
+                                    },
+                                    {
+                                        icon: data.weatherForecast[2].ForecastIcon,
+                                        label: dayNames[nextDay.getDay()],
+                                        minTemp: data.weatherForecast[2].forecastMintemp?.value,
+                                        maxTemp: data.weatherForecast[2].forecastMaxtemp?.value
+                                    }
+                                ];
+                                
+                                const container = document.getElementById('staticForecast');
+                                container.style.display = 'flex';
+                                container.innerHTML = ''; // Clear existing cards
+                                forecastCards = []; // Reset array
+                                
+                                // Create three forecast cards
+                                forecasts.forEach((forecast, index) => {
+                                    const card = document.createElement('div');
+                                    card.className = `forecast-card-${index}`;
+                                    card.style.cssText = 'display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 10px; background: rgba(255,255,255,0.05); border-radius: 8px; min-width: 70px;';
+                                    
+                                    card.innerHTML = `
+                                        <img src="assets/hko/pic${forecast.icon}.png" alt="${forecast.label}" style="width: 32px; height: 32px; object-fit: contain;">
+                                        <span style="font-size: 10px; color: #ffffff; font-weight: 700; white-space: nowrap;">${forecast.minTemp}° - ${forecast.maxTemp}°</span>
+                                        <span style="font-size: 8px; color: #d1d5db; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${forecast.label}</span>
+                                    `;
+                                    
+                                    container.appendChild(card);
+                                    forecastCards.push(card);
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Forecast display failed', e);
+                        }
+                    }
+
+                    // Update forecast card visibility based on warning count
+                    function updateForecastVisibility(warningCount) {
+                        if (forecastCards.length > 0) {
+                            const lastCard = forecastCards[forecastCards.length - 1];
+                            // Only hide the 3rd day forecast when there are 4 or more active warnings (crowded header scenario)
+                            if (warningCount >= 4) {
+                                lastCard.style.display = 'none';
+                            } else {
+                                lastCard.style.display = 'flex';
+                            }
+                        }
+                    }
+
+                                async function updatePollutants(stationName){
+                        try{
+                            const res = await fetchWithRetry(pollutantUrl);
+                            const xmlText = await res.text();
+                            const parser = new DOMParser();
+                            const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
+                            const records = Array.from(xmlDoc.getElementsByTagName('PollutantConcentration'))
+                                .filter(node => node.getElementsByTagName('StationName')[0]?.textContent === stationName);
+                            if (!records.length) throw new Error('No data for station');
+                            const latest = records[records.length - 1];
+
+                            const get = tag => latest.getElementsByTagName(tag)[0]?.textContent ?? '—';
+                            
+                            // NO2 with color coding - more vivid air quality scale
+                            const no2 = get('NO2');
+                            no2ValueEl.textContent = no2;
+                            if (no2 !== '—') {
+                                no2ValueEl.style.backgroundColor = setColour(Number(no2), [40, 90, 120, 230, 340, 9999], ["#00e5ff", "#00e676", "#ffea00", "#ff3d00", "#d50000", "#aa00ff"]);
+                                no2ValueEl.style.color = '#111827';
+                            } else {
+                                no2ValueEl.style.backgroundColor = '#9ca3af';
+                                no2ValueEl.style.color = '#ffffff';
+                            }
+
+                            // O3 with color coding - more vivid air quality scale
+                            const o3 = get('O3');
+                            o3ValueEl.textContent = o3;
+                            if (o3 !== '—') {
+                                o3ValueEl.style.backgroundColor = setColour(Number(o3), [50, 100, 130, 240, 380, 9999], ["#00e5ff", "#00e676", "#ffea00", "#ff3d00", "#d50000", "#aa00ff"]);
+                                o3ValueEl.style.color = '#111827';
+                            } else {
+                                o3ValueEl.style.backgroundColor = '#9ca3af';
+                                o3ValueEl.style.color = '#ffffff';
+                            }
+
+                            // SO2 with color coding - more vivid air quality scale
+                            const so2 = get('SO2');
+                            so2ValueEl.textContent = so2;
+                            if (so2 !== '—') {
+                                so2ValueEl.style.backgroundColor = setColour(Number(so2), [100, 200, 350, 500, 750, 9999], ["#00e5ff", "#00e676", "#ffea00", "#ff3d00", "#d50000", "#aa00ff"]);
+                                so2ValueEl.style.color = '#111827';
+                            } else {
+                                so2ValueEl.style.backgroundColor = '#9ca3af';
+                                so2ValueEl.style.color = '#ffffff';
+                            }
+
+                            // CO with color coding - more vivid air quality scale
+                            const co = get('CO');
+                            coValueEl.textContent = co;
+                            if (co !== '—') {
+                                coValueEl.style.backgroundColor = setColour(Number(co), [4000, 20000, 35000, 50000, 75000, 999999999999], ["#00e5ff", "#00e676", "#ffea00", "#ff3d00", "#d50000", "#aa00ff"]);
+                                coValueEl.style.color = '#111827';
+                            } else {
+                                coValueEl.style.backgroundColor = '#9ca3af';
+                                coValueEl.style.color = '#ffffff';
+                            }
+
+                            // PM10 with color coding - more vivid air quality scale
+                            const pm10 = get('PM10');
+                            pm10ValueEl.textContent = pm10;
+                            if (pm10 !== '—') {
+                                pm10ValueEl.style.backgroundColor = setColour(Number(pm10), [20, 40, 50, 100, 150, 9999], ["#00e5ff", "#00e676", "#ffea00", "#ff3d00", "#d50000", "#aa00ff"]);
+                                pm10ValueEl.style.color = '#111827';
+                            } else {
+                                pm10ValueEl.style.backgroundColor = '#9ca3af';
+                                pm10ValueEl.style.color = '#ffffff';
+                            }
+
+                            // PM2.5 with color coding - more vivid air quality scale
+                            const pm25 = get('PM2.5');
+                            pm25ValueEl.textContent = pm25;
+                            if (pm25 !== '—') {
+                                pm25ValueEl.style.backgroundColor = setColour(Number(pm25), [10, 20, 25, 50, 75, 9999], ["#00e5ff", "#00e676", "#ffea00", "#ff3d00", "#d50000", "#aa00ff"]);
+                                pm25ValueEl.style.color = '#111827';
+                            } else {
+                                pm25ValueEl.style.backgroundColor = '#9ca3af';
+                                pm25ValueEl.style.color = '#ffffff';
+                            }
+                                    } catch(e){
+                            console.warn('Pollutants fetch failed', e);
+                            no2ValueEl.textContent = o3ValueEl.textContent = so2ValueEl.textContent = coValueEl.textContent = pm10ValueEl.textContent = pm25ValueEl.textContent = '—';
+                                        const s = document.getElementById('sd-status');
+                                        s.style.display = 'block';
+                                        s.textContent = 'Pollutant values unavailable (proxy/CORS). Open the site on GitHub Pages to see full data.';
+                        }
+                    }
+
+                    // Get AQHI color based on value
+                    function getAQHIColor(aqhi) {
+                        if (aqhi <= 3) return '#00e676'; // Low - green
+                        if (aqhi <= 6) return '#ffea00'; // Moderate - yellow
+                        if (aqhi <= 7) return '#ff6d00'; // High - orange
+                        if (aqhi <= 10) return '#ff1744'; // Very High - red
+                        return '#d500f9'; // Serious - purple
+                    }
+
+                    // Get text color for AQHI badge (dark text for yellow)
+                    function getAQHITextColor(aqhi) {
+                        if (aqhi >= 4 && aqhi <= 6) return '#111827'; // Dark text for yellow
+                        return '#ffffff'; // White text for all others
+                    }
+
+                    // Update AQHI badge in Air Quality button
+                    async function updateAQHIBadge() {
+                        try {
+                            const res = await fetchWithRetry(aqhiUrl);
+                            const data = await res.json();
+                            
+                            // Calculate average AQHI across all stations
+                            const aqhiValues = data.map(s => s.aqhi).filter(v => v != null && !isNaN(v));
+                            if (aqhiValues.length > 0) {
+                                const avgAQHI = Math.round(aqhiValues.reduce((sum, v) => sum + v, 0) / aqhiValues.length);
+                                
+                                // Update mobile badge
+                                const badge = document.getElementById('aqhiBadge');
+                                badge.textContent = avgAQHI;
+                                badge.style.backgroundColor = getAQHIColor(avgAQHI);
+                                badge.style.color = getAQHITextColor(avgAQHI);
+                                badge.style.display = 'inline-block';
+                                badge.title = `Hong Kong Average AQHI: ${avgAQHI} (Click for info)`;
+                                
+                                // Update desktop badge
+                                const badgeDesktop = document.getElementById('aqhiBadgeDesktop');
+                                badgeDesktop.textContent = avgAQHI;
+                                badgeDesktop.style.backgroundColor = getAQHIColor(avgAQHI);
+                                badgeDesktop.style.color = getAQHITextColor(avgAQHI);
+                                badgeDesktop.style.display = 'inline-block';
+                                badgeDesktop.title = `Hong Kong Average AQHI: ${avgAQHI} (Click for info)`;
+                                // apply glow severity
+                                badgeDesktop.classList.remove('low','moderate','severe','pulse');
+                                if (avgAQHI <= 3) {
+                                    badgeDesktop.classList.add('low');
+                                } else if (avgAQHI <= 7) {
+                                    badgeDesktop.classList.add('moderate','pulse');
+                                } else {
+                                    badgeDesktop.classList.add('severe','pulse');
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Failed to update AQHI badge', e);
+                        }
+                    }
+
+                    // init
+                    loadStations();
+                    checkTodayHoliday();
+                    updateAQHIBadge();
+                    initStaticForecast();
+                })();
+
+        // Auto-refresh functionality
+        let refreshCountdown;
+        let secondsRemaining = 900; // 15 minutes in seconds
+        const REFRESH_DURATION = 900; // 15 minutes
+
+        function updateRefreshUI() {
+            const progressBar = document.getElementById('refreshProgressBar');
+            
+            if (progressBar) {
+                const percentage = (secondsRemaining / REFRESH_DURATION) * 100;
+                progressBar.style.width = `${percentage}%`;
+            }
+        }
+
+        function startRefreshCountdown() {
+            secondsRemaining = REFRESH_DURATION;
+            updateRefreshUI();
+            
+            if (refreshCountdown) {
+                clearInterval(refreshCountdown);
+            }
+            
+            refreshCountdown = setInterval(() => {
+                secondsRemaining--;
+                updateRefreshUI();
+                
+                if (secondsRemaining <= 0) {
+                    performRefresh();
+                }
+            }, 1000);
+        }
+
+        async function performRefresh() {
+            console.log('Auto-refreshing dashboard data...');
+            
+            const progressBar = document.getElementById('refreshProgressBar');
+            
+            // Flash green on refresh
+            if (progressBar) {
+                progressBar.style.background = 'linear-gradient(90deg, #22c55e 0%, #10b981 100%)';
+                progressBar.style.boxShadow = '0 0 15px rgba(34, 197, 94, 0.6)';
+            }
+            
+            try {
+                // Get current station
+                const stationSelect = document.getElementById('stationSelector');
+                const currentStation = stationSelect?.value;
+                
+                // Refresh all data
+                if (currentStation) {
+                    await updateForStation(currentStation);
+                }
+                await loadWarnings();
+                await checkTodayHoliday();
+                
+                console.log('Dashboard refreshed successfully');
+            } catch (error) {
+                console.error('Error refreshing dashboard:', error);
+                // Flash red on error
+                if (progressBar) {
+                    progressBar.style.background = 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
+                }
+            }
+            
+            // Reset color after brief delay
+            setTimeout(() => {
+                if (progressBar) {
+                    progressBar.style.background = 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)';
+                    progressBar.style.boxShadow = '0 0 10px rgba(102, 126, 234, 0.5)';
+                }
+            }, 800);
+            
+            // Restart countdown
+            startRefreshCountdown();
+        }
+
+        // Start countdown when page loads
+        window.addEventListener('load', () => {
+            startRefreshCountdown();
+        });
+    </script>
+    
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-left">
+            <img src="assets/connected-spaces-logo.png" alt="Connected Spaces" style="height: 36px;" />
+            <div class="footer-citations">
+                <div>Data: <span class="credits-link" onclick="openModal('credits')">HKO</span>, <span class="credits-link" onclick="openModal('credits')">EPD</span>, <span class="credits-link" onclick="openModal('credits')">SCMP</span></div>
+            </div>
+        </div>
+        <div class="footer-buttons">
+            <button onclick="openModal('traffic')">🚦 Traffic</button>
+            <button onclick="openModal('news')">📰 News</button>
+            <button onclick="openModal('events')">📅 Events</button>
+        </div>
+    </div>
+
+    <script>
+    // Responsive panel switching for mobile
+    function showPanel(panel) {
+        var weatherPanel = document.getElementById('weatherPanel');
+        var airPanel = document.getElementById('airPanel');
+        var weatherBtn = document.getElementById('weatherBtn');
+        var airBtn = document.getElementById('airBtn');
+        if (panel === 'weather') {
+            weatherPanel.classList.add('active');
+            airPanel.classList.remove('active');
+            weatherBtn.classList.add('active');
+            airBtn.classList.remove('active');
+        } else {
+            weatherPanel.classList.remove('active');
+            airPanel.classList.add('active');
+            weatherBtn.classList.remove('active');
+            airBtn.classList.add('active');
+        }
+    }
+    // Show/hide panel switcher based on screen size
+    function handlePanelSwitcher() {
+        var switcher = document.getElementById('panelSwitcher');
+        if (window.innerWidth <= 700) {
+            switcher.style.display = 'flex';
+            showPanel('weather');
+        } else {
+            switcher.style.display = 'none';
+            document.getElementById('weatherPanel').classList.add('active');
+            document.getElementById('airPanel').classList.add('active');
+        }
+    }
+    window.addEventListener('resize', handlePanelSwitcher);
+    window.addEventListener('DOMContentLoaded', handlePanelSwitcher);
+
+    // Interactive Tour System
+    const tourSteps = [
+        {
+            element: '#stationSelector',
+            title: 'Select Your Station',
+            text: 'Choose from various monitoring stations across Hong Kong to see localized weather and air quality data.',
+            position: 'bottom'
+        },
+        {
+            element: '.metric-label img.clickable-icon',
+            title: 'Click for Details',
+            text: 'Click any weather or pollutant icon to see detailed information, historical trends, and 7-day forecasts where available.',
+            position: 'right'
+        },
+        {
+            element: '#warningsContainer',
+            title: 'Weather Warnings',
+            text: 'Active weather warnings appear here. Click any warning icon to see full details about current alerts.',
+            position: 'bottom'
+        },
+        {
+            element: '.metric-value',
+            title: 'Color-Coded Values',
+            text: 'Metric values are color-coded to show conditions at a glance. Darker colors indicate more severe conditions.',
+            position: 'left'
+        },
+        {
+            element: '.footer-buttons button:first-child',
+            title: 'Additional Data',
+            text: 'Access traffic conditions and news updates via footer buttons. Data sources are credited below.',
+            position: 'top'
+        }
+    ];
+
+    let currentTourStep = 0;
+    let tourOverlay = null;
+    let tourSpotlight = null;
+    let tourTooltip = null;
+
+    function startTour() {
+        // Check if first visit
+        const hasSeenTour = localStorage.getItem('hkdash_tour_seen');
+        
+        // Create overlay elements
+        tourOverlay = document.createElement('div');
+        tourOverlay.className = 'tour-overlay';
+        tourOverlay.style.display = 'block';
+        
+        tourSpotlight = document.createElement('div');
+        tourSpotlight.className = 'tour-spotlight';
+        
+        tourTooltip = document.createElement('div');
+        tourTooltip.className = 'tour-tooltip';
+        
+        document.body.appendChild(tourOverlay);
+        document.body.appendChild(tourSpotlight);
+        document.body.appendChild(tourTooltip);
+        
+        currentTourStep = 0;
+        showTourStep();
+    }
+
+    function showTourStep() {
+        if (currentTourStep >= tourSteps.length) {
+            endTour();
+            return;
+        }
+
+        const step = tourSteps[currentTourStep];
+        const targetElement = document.querySelector(step.element);
+        
+        if (!targetElement) {
+            // Skip if element not found
+            currentTourStep++;
+            showTourStep();
+            return;
+        }
+
+        // Position spotlight
+        const rect = targetElement.getBoundingClientRect();
+        tourSpotlight.style.top = (rect.top - 8) + 'px';
+        tourSpotlight.style.left = (rect.left - 8) + 'px';
+        tourSpotlight.style.width = (rect.width + 16) + 'px';
+        tourSpotlight.style.height = (rect.height + 16) + 'px';
+
+        // Position tooltip
+        let tooltipTop, tooltipLeft;
+        const tooltipWidth = 320;
+        const tooltipHeight = 180; // approximate
+        
+        switch (step.position) {
+            case 'right':
+                tooltipTop = rect.top;
+                tooltipLeft = rect.right + 20;
+                break;
+            case 'left':
+                tooltipTop = rect.top;
+                tooltipLeft = rect.left - tooltipWidth - 20;
+                break;
+            case 'top':
+                tooltipTop = rect.top - tooltipHeight - 20;
+                tooltipLeft = rect.left;
+                break;
+            case 'bottom':
+            default:
+                tooltipTop = rect.bottom + 20;
+                tooltipLeft = rect.left;
+        }
+
+        // Keep tooltip on screen
+        tooltipTop = Math.max(20, Math.min(tooltipTop, window.innerHeight - tooltipHeight - 20));
+        tooltipLeft = Math.max(20, Math.min(tooltipLeft, window.innerWidth - tooltipWidth - 20));
+
+        tourTooltip.style.top = tooltipTop + 'px';
+        tourTooltip.style.left = tooltipLeft + 'px';
+
+        // Set tooltip content
+        const isLast = currentTourStep === tourSteps.length - 1;
+        tourTooltip.innerHTML = `
+            <h3>${step.title}</h3>
+            <p>${step.text}</p>
+            <div class="tour-controls">
+                <span class="tour-progress">Step ${currentTourStep + 1} of ${tourSteps.length}</span>
+                <div class="tour-buttons">
+                    <button class="tour-btn tour-btn-skip" onclick="endTour()">Skip</button>
+                    <button class="tour-btn tour-btn-next" onclick="nextTourStep()">${isLast ? 'Finish' : 'Next'}</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function nextTourStep() {
+        currentTourStep++;
+        showTourStep();
+    }
+
+    function endTour() {
+        if (tourOverlay) tourOverlay.remove();
+        if (tourSpotlight) tourSpotlight.remove();
+        if (tourTooltip) tourTooltip.remove();
+        
+        // Mark tour as seen
+        localStorage.setItem('hkdash_tour_seen', 'true');
+    }
+
+    // Auto-start tour on first visit
+    window.addEventListener('DOMContentLoaded', function() {
+        const hasSeenTour = localStorage.getItem('hkdash_tour_seen');
+        if (!hasSeenTour) {
+            // Wait a bit for page to settle
+            setTimeout(startTour, 1500);
+        }
+    });
+
+    // Loading Screen Handler
+    (function() {
+        const loadingScreen = document.getElementById('loadingScreen');
+        const minDisplayTime = 3000; // 3 seconds minimum
+        const startTime = Date.now();
+
+        function hideLoadingScreen() {
+            if (!loadingScreen) return;
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
+            setTimeout(() => {
+                loadingScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+            }, remainingTime);
+        }
+
+        // Failsafe: forcibly hide splash after 6 seconds
+        setTimeout(() => {
+            if (loadingScreen && loadingScreen.style.display !== 'none') {
+                loadingScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+            }
+        }, 6000);
+
+        if (document.readyState === 'complete') {
+            hideLoadingScreen();
+        } else {
+            window.addEventListener('load', hideLoadingScreen);
+        }
+    })();
+
+    </script>
+</body>
+</html>
