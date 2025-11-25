@@ -3,7 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HK Dashboard - Single Screen</title>
+    <title>Hong Kong Online - Real-time Weather & Air Quality Dashboard</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="Hong Kong Online - Real-time Weather & Air Quality Dashboard">
+    <meta name="description" content="Live Hong Kong weather, air quality (AQHI), pollutants, traffic, and news. Comprehensive dashboard with weather warnings, forecasts, and health alerts for all districts.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourdomain.com/simpledashboard.html">
+    <meta property="og:title" content="Hong Kong Online - Real-time Weather & Air Quality Dashboard">
+    <meta property="og:description" content="Live Hong Kong weather, air quality (AQHI), pollutants, traffic, and news. Comprehensive dashboard with weather warnings, forecasts, and health alerts for all districts.">
+    <meta property="og:image" content="https://yourdomain.com/assets/metaimage.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://yourdomain.com/simpledashboard.html">
+    <meta property="twitter:title" content="Hong Kong Online - Real-time Weather & Air Quality Dashboard">
+    <meta property="twitter:description" content="Live Hong Kong weather, air quality (AQHI), pollutants, traffic, and news. Comprehensive dashboard with weather warnings, forecasts, and health alerts for all districts.">
+    <meta property="twitter:image" content="https://yourdomain.com/assets/metaimage.jpg">
+    
     <style>
         * {
             margin: 0;
@@ -1228,7 +1247,10 @@
 
     <div class="header">
         <div style="display: flex; align-items: center; gap: 24px;">
-            <h1>Hong Kong Dashboard</h1>
+            <div>
+                <h1>Hong Kong Online</h1>
+                <div id="currentDateTime" style="color: rgba(255, 255, 255, 0.9); font-size: 12px; font-weight: 400; margin-top: 2px;"></div>
+            </div>
             <div id="holidayBanner" style="display: none; background: rgba(34, 197, 94, 0.9); color: white; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"></div>
         </div>
         <div class="header-buttons">
@@ -3165,6 +3187,33 @@
                     updateAQHIBadge();
                     initStaticForecast();
                 })();
+
+        // Live clock display in header
+        function updateClock() {
+            const now = new Date();
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            const dayName = days[now.getDay()];
+            const day = now.getDate();
+            const month = months[now.getMonth()];
+            const year = now.getFullYear();
+            
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            const dateStr = `${dayName}, ${day} ${month} ${year}`;
+            const timeStr = `${hours}:${minutes}`;
+            
+            const el = document.getElementById('currentDateTime');
+            if (el) {
+                el.textContent = `${dateStr} • ${timeStr}`;
+            }
+        }
+        
+        // Update clock immediately and then every minute
+        updateClock();
+        setInterval(updateClock, 60000);
 
         // Auto-refresh functionality
         let refreshCountdown;
